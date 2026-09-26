@@ -1,0 +1,147 @@
+================================================================================
+EVENTTWIN — USER FUNCTIONAL OVERVIEW & FEATURE GUIDE (HINGLISH)
+================================================================================
+
+1. EVENTTWIN KYA HAI? (OVERVIEW)
+--------------------------------------------------------------------------------
+Jab kisi city ya venue (jaise Jio World Convention Centre, BKC, Mumbai) mein 
+lakho log kisi mega-event, concert, ya summit ke liye ikkatthe hote hain, toh 
+unka crowd management bohot mushkil ho jata hai:
+  - Entrance gates par lambi lines aur stampede risk.
+  - Metro aur railway stations par crush crowd.
+  - Main access roads par heavy traffic gridlock.
+  - Ek jagah (Zone A) over-full hoti hai, jabki dusri pass wali jagah (Zone C) 
+    khali padi rehti hai.
+
+EventTwin ek A.I.-powered smart operational digital twin platform hai jo city 
+operators, event managers, aur traffic authorities ko real-time status dikhata hai, 
+aane wali pareshaniyo ko 15 se 45 minute pehle predict karta hai, aur crowd ko 
+smartly balance karne ke actionable solutions deta hai.==
+
+
+2. OPERATOR / USER PERSPECTIVE SE MAIN FEATURES & SCREENS
+--------------------------------------------------------------------------------
+
+[1] COMMAND CENTER (LIVE DASHBOARD)
+    - City Health Check: Pure event ecosystem ka overall Stress Level (0-100%) 
+      aur live health indicators ek glance mein dikhate hain.
+    - 6 Core Operational Telemetry Cards: Live Visitors count, Venue Pressure, 
+      Transit Platform Load, Parking Occupancy, Hotel Guest Pressure, aur Road 
+      Mobility status.
+    - Next Critical Event Forecast Banner: Agar city mein koi bhi resource (gate, 
+      transit, ya parking) overcrowd hone wala hai, toh sabse upar warning 
+      banner aa jata hai jo batata hai ki kitne minute mein risk aane wala hai.
+    - 1-Click Action Shortcut: Directly alert se solution page par navigate 
+      karne ka option.
+
+
+[2] GEOSPATIAL DIGITAL TWIN (REAL MAP VIEW)
+    - Real Geography Map: Mumbai ke BKC aur surrounding areas ka interactive map.
+    - Live Facility Pins: 15 real locations (Venues, Hotels, Metro/Railway 
+      Stations, Parking Lots, aur Shuttle Corridors) map par pins ki tarah 
+      render hote hain.
+    - View Mode Switcher (Current vs Predicted +30m):
+        * "Current Mode": Abhi is waqt kahan kitna crowd hai dikhata hai.
+        * "Predicted (+30m Risk) Mode": Visual switch karne par map pins 
+          apna color change kar leti hain (Green = Safe, Yellow = Moderate, 
+          Orange = High, Red = Critical Risk) taki 30 minute baad hone wale 
+          traffic jam aur overcrowding ka pehle se andaza lag jaye.
+
+
+[3] PREDICTIVE FORECASTING ENGINE (PREDICTIONS PAGE)
+    - Multi-Horizon Capacity Matrix: 7 main resources (Zone A, Zone B, Zone C, 
+      Venue, Transit, Parking, Hotel) ka agle 15m, 30m, aur 45m ka expected 
+      load comparison table.
+    - Risk Color Coding: Risk level ke hisab se automatic color badges:
+        * LOW (<70%): Normal flow
+        * MODERATE (70-85%): Attention required
+        * HIGH (85-100%): Severe pressure
+        * CRITICAL (>100%): Saturation breakeven
+    - Causal Ripple Explanations (Kyun Congestion Ho Raha Hai): Pure plain 
+      language mein batata hai ki bottleneck ka asli karan kya hai (e.g., 
+      "Baarish ki wajah se shuttles slow hui hain aur +20% visitor inflow badha hai").
+    - Embedded What-If Controls: Page par hi live parameters change karke check 
+      kar sakte hain ki naye inputs se future predictions par kya asar padega.
+    - Preempt Bottleneck Trigger: Instant button daba kar crowd ko overloaded 
+      Zone A se khali Zone C (Kalina Hub) ki taraf divert/rebalance karne ka 
+      simulation chala sakte hain.
+
+
+[4] WHAT-IF CRISIS SIMULATOR (SIMULATOR PAGE)
+    - Custom Crisis Testing Sliders: User alag-alag emergency ya shock 
+      scenarios build kar sakta hai:
+        * Visitor Increase Slider (0% se +100%)
+        * Heavy Rain / Weather Impact (0% se 50%)
+        * Transit Disruption / Train Delays (0% se 50%)
+        * Parking Capacity Closure (0% se 50%)
+        * Venue Check-in Gate Delays (0 se 90 minutes)
+    - Quick Preset Buttons: 1-click presets jaise "Heavy Rain + Transit Down" 
+      ya "Evening Peak Surge".
+    - Before vs After Comparison Table: Dikhata hai ki bina kisi action ke 
+      city stress kitna hoga vs Smart Rebalancing apply karne ke baad kitna 
+      control ho jayega.
+    - A.I. Prescriptive Directives: Automatically recommend karta hai ki traffic 
+      ko kahan divert karna chahiye aur kitna stress kam hoga.
+
+
+[5] OPERATIONS & ACTION DISPATCH (OPERATIONS PAGE)
+    - Prescriptive Intervention Action Cards:
+        1. REDIRECT VISITORS: Overcrowded Zone A se 15-20% crowd ko Zone C 
+           concourses ki taraf divert karna.
+        2. REROUTE SHUTTLES: Congested main highway se hatakar shuttles ko 
+           bypass mobility corridors par shift karna.
+        3. REDISTRIBUTE PARKING: Full venue parking (92% full) se cars ko 
+           Kalina overflow staging lot (8,000+ free bays) mein direct karna.
+    - 3-Stage Dispatch Lifecycle:
+        * SIMULATE ACTION (Effect analyze karo)
+        * ACTION APPROVED (Management clearance)
+        * READY TO DISPATCH (Ground staff / traffic control message send)
+
+
+[6] PRIORITY ALERTS FEED (ALERTS PAGE)
+    - Triage Categorization:
+        * 🔴 PREDICTED CRITICAL RISK: Agle 45 min mein 100% capacity cross karne 
+          wale spots.
+        * 🔴 CRITICAL: Current active bottlenecks aur gate delays.
+        * 🟡 ATTENTION: Operational warnings (e.g. hotel check-in delay, 
+          parking 75% full).
+        * 🔵 A.I. INSIGHT: Available buffer options (e.g. Zone C mein 8,250 free 
+          parking bays available).
+    - Clear Root-Cause Structure: Har alert mein 3 baatein clearly likhi hoti hain:
+        * Kya Hua (What Happened)
+        * Kyun Matter Karta Hai (Why It Matters)
+        * Kya Action Lena Chahiye (What Can Be Done)
+
+
+[7] TEMPORAL ANALYTICS & TRENDS (ANALYTICS PAGE)
+    - Historical & Forecasted Stress Curves: Past 12-24 hours ka hourly stress 
+      trend dekhne ke sath agle 45 minutes ka forecasted stress trajectory 
+      overlay line graph par dikhti hai.
+    - Cross-Sector Telemetry: Venue load, Transit load, aur Parking load ka 
+      side-by-side comparative graph.
+    - Timeframe Filters: 2H, 6H, 12H, aur 24H views.
+
+
+[8] PLATFORM CLEARANCE & SETTINGS (SETTINGS PAGE)
+    - Event Profile Configuration: Active event title (e.g. "Mumbai Global Expo 2026") 
+      aur scale customize karna.
+    - Custom Alarm Thresholds: Operational stress warning triggers ko 70% se 95% 
+      par adjust karne ka control.
+    - User Role Clearance: Security clearance view (City Operations, Event 
+      Organizer, Transport Authority, Hospitality Lead).
+
+
+3. EVENTTWIN USE KARNE KE MAIN OPERATIONAL ADVANTAGES
+--------------------------------------------------------------------------------
+1. Early Warning System: Congestion hone se 15-45 minute pehle pata chal jata 
+   hai, jisse reactive police management ki bajaye proactive mitigation hoti hai.
+2. Spatial Rebalancing: Single zone overload hone par city ki under-utilized 
+   capacities (Zone C Kalina) ko fully leverage kiya jata hai.
+3. Easy Decision Making: Har alert ke sath actionable guidance milti hai, 
+   jisse decision-making lightning fast ho jati hai.
+4. Smooth Event Experience: Visitors ko gate stampede, severe traffic jam, aur 
+   parking hunt se azadi milti hai.
+
+================================================================================
+END OF USER FUNCTIONAL OVERVIEW (EventTwin Platform Guide)
+================================================================================

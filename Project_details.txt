@@ -1,0 +1,292 @@
+================================================================================
+EVENTTWIN — COMPREHENSIVE PROJECT DETAILS & TECHNICAL SPECIFICATION
+Hackathon: HACKCELESTIAL 3.0 | Team: Ghost Protocol
+Platform: AI-Powered Predictive & Geospatial Digital Twin for Urban Mega-Events
+================================================================================
+
+1. PROJECT OVERVIEW
+--------------------------------------------------------------------------------
+EventTwin is an operational geospatial digital twin and predictive simulation 
+platform designed for municipal authorities, mega-event organizers, and emergency 
+dispatchers. When massive crowds (500,000+ attendees) converge upon a metropolitan 
+precinct (e.g. Jio World Convention Centre, Bandra Kurla Complex, Mumbai), urban 
+systems routinely choke in silos:
+  - Turnstile bottlenecks trap tens of thousands at entry gates.
+  - Metro platforms reach dangerous overcrowding thresholds.
+  - Access roads experience vehicular gridlock.
+  - Peripheral facilities (Zone C Kalina Hub) sit underutilized with thousands of open bays.
+
+EventTwin unifies verified real-world infrastructure data with a live Neural 
+Network (brain.js) and mathematical simulation to detect bottlenecks 45+ minutes 
+in advance, model non-linear cascade ripple effects (monsoons, transit strikes, 
+gate delays), and compute spatial rebalancing interventions that preserve conservation 
+laws while lowering urban stress.
+
+
+2. TECHNOLOGY STACK
+--------------------------------------------------------------------------------
+Frontend:
+  - Framework: React 19.2 (SPA Architecture)
+  - Language: TypeScript 6.0 (Strict Typing, Zero Type Errors)
+  - Build Tool / Bundler: Vite 8.3
+  - Styling: Tailwind CSS v4.3 + Custom Glassmorphism UI tokens
+  - Geospatial Real Map: MapLibre GL 6.10 (Vector/Raster tile rendering, custom animated HTML markers, arterial GeoJSON mobility corridors, Fullscreen API)
+  - Map Tile Provider: ESRI World Dark Gray Canvas (Base & Reference labels) for watermark-free, high-contrast night ops telemetry
+  - Data Visualizations: Recharts 3.10 (ComposedCharts, AreaCharts, BarCharts, LineCharts)
+  - Icons: Lucide React 1.46
+  - Interactions: Canvas Confetti 1.9
+
+Backend & Machine Learning:
+  - Runtime: Node.js (v20.15.0+)
+  - Framework: Express.js 4.21 (RESTful API, modular controllers)
+  - Machine Learning Engine: brain.js Neural Network (16 input -> 26 hidden -> 16 hidden -> 3 output)
+  - ML Pipeline: Custom training CLI (trainModel.js) with min-max normalization (norm_params.json) and persistence (model_weights.json, model_metrics.json)
+  - Simulation Engine: Pure mathematical micro-simulation engine (server/simulationEngine.js)
+  - Storage & Sync: Firebase Realtime Database (eventtwin-36665-default-rtdb) with transparent in-memory fallback
+  - Testing & Validation: Custom automated test harnesses (test_simulation.js, test_e2e_api.js, test_prediction_service.js, riskClassifier.test.js)
+
+
+3. WHAT WE IMPLEMENTED (PHASES 1, 2 & PRODUCTION ENHANCEMENTS)
+--------------------------------------------------------------------------------
+[x] 1. REMOVAL OF ALL HARDCODED RESULTS:
+    - Completely purged the static "41%" rebalance return value.
+    - Eliminated fixed rebalanced loads (Transit 78%, Parking 72%, Venue 82%, Hotel 80%).
+    - Results are 100% computed dynamically from actual scenario parameters and selected interventions.
+
+[x] 2. CENTRAL EVENTTWIN STRESS INDEX:
+    - Implemented the exact multi-criteria weighted formula:
+        Stress = Mobility * 0.30 + Venue * 0.25 + Parking * 0.20 + Hotel * 0.15 + DemandImbalance * 0.10
+    - Component normalization strictly bounded to [0, 100].
+    - Baseline is calculated dynamically (~69%) rather than forced to a static value.
+
+[x] 3. SEPARATION OF INFRASTRUCTURE LOAD FROM SYSTEM STRESS:
+    - Infrastructure Load is strictly defined as:
+        Load % = (Projected Demand / Effective Capacity) * 100
+    - Applied uniformly across Venues, Transit, Parking, Hotels, and Zones.
+    - Loads can legitimately exceed 100% (e.g. 131% venue overload under crisis).
+
+[x] 4. CANONICAL EVENT STATE SYNCHRONIZATION:
+    - Single source of truth containing:
+        * Total Visitors (baseline 500,000)
+        * Zone breakdown (Zone A, Zone B, Zone C)
+        * Individual facilities (15 verified & simulated facilities)
+        * Current and predicted resource loads
+        * EventTwin Stress Index & breakdown
+    - Unified across all frontend pages: Dashboard, Digital Twin, Predictions, 
+      What-If Simulator, Operations, Analytics, and Alerts.
+
+[x] 5. DYNAMIC WHAT-IF SIMULATION ENGINE (server/simulationEngine.js):
+    - Function: simulateScenario(baseState, scenarioParams)
+    - Full mathematical transformation pipeline:
+        Scenario Inputs -> Multipliers -> Demand Scaling -> Ripple Effects 
+        -> Resource Loads -> Zone Imbalances -> Stress Index -> Recommendations.
+
+[x] 6. PHYSICAL CONSERVATION LAWS IN INTERVENTIONS:
+    - Visitor Conservation: Diverting visitors from Zone A to Zone C preserves 
+      total event attendees: ZoneA + ZoneB + ZoneC === TotalVisitors.
+    - Vehicle Conservation: Moving cars from JWCC Lot G to Kalina Overflow Lot 
+      strictly preserves total parked vehicles.
+    - Shuttle Rerouting: Shifts fleet to bypass corridors, increasing effective throughput.
+    - Entry Staggering: Dampens peak arrival surge factor by 22%, relieving turnstile spikes.
+
+[x] 7. NON-LINEAR CAUSAL RIPPLE EFFECTS:
+    - Fully modeled dependency chain:
+        Monsoon Rain (+20%)
+        -> Road throughput drops (-12%)
+        -> Shuttle turnaround time increases (15m -> 17.3m)
+        -> Arrival bunching surge increases (+8%)
+        -> Venue turnstile gate choke surges (131% load)
+        -> Parking dwell time increases (+4%)
+    - Transit disruption spills over into road vehicle traffic (+35% spillover factor).
+    - Venue ingress delays reduce effective turnstile throughput.
+
+[x] 8. BEFORE / AFTER COMPARATIVE REPORTING:
+    - Returns exact calculated Before Stress, After Stress, and Stress Reduction.
+    - Detailed Before/After for Venue, Transit, Parking, and Hotel loads.
+    - Lists specific affected zones and resources with before/after load comparisons.
+
+[x] 9. EXPLAINABLE RECOMMENDATIONS FRAMEWORK:
+    - Structured, non-black-box justification:
+        * WHY: Specific bottleneck forecast (e.g., Zone A reaches 131% load).
+        * ACTION: Exact operational diversion (e.g., Redirect 15% visitors, shift 22% vehicles).
+        * EXPECTED EFFECT: Primary relief metric (e.g., Reduces venue load by 44 points).
+        * TRADE-OFF: Absorbing zone consequence (e.g., Safely utilizes Zone C surplus capacity).
+
+[x] 10. DATA HONESTY PROTOCOL:
+    - Explicitly separated:
+        * VERIFIED: Real coordinates, published addresses, and verified physical capacities.
+        * SIMULATED: Live visitor arrivals, gate queues, parking occupancies, and transit flows.
+    - Truthful attribution of model source ("ml" vs "fallback-simulation").
+
+[x] 11. AUTOMATED TEST SUITES & VALIDATION:
+    - server/test_simulation.js: 80 out of 80 automated unit tests passing.
+    - server/test_e2e_api.js: Complete live HTTP endpoint verification passing.
+    - server/prediction/test_prediction_service.js: 40 tests passing (pipeline, horizons, conservation).
+    - server/prediction/riskClassifier.test.js: 14 tests passing (bands, boundary conditions, interpolations).
+    - Client build: tsc -b && vite build succeeds with 0 errors.
+
+[x] 12. MACHINE LEARNING INTEGRATION (brain.js Neural Network):
+    - Multi-Layer Feedforward Neural Network (16 inputs -> [26, 16] hidden layers -> 3 outputs).
+    - Feature Vector: 16 normalized parameters (visitors, surge rate, rain, transit reduction,
+      parking reduction, gate delays, arrival multipliers, and time horizons).
+    - Offline Training Pipeline (server/prediction/trainModel.js):
+        * Ingests 20,000 synthetic training scenarios.
+        * Min-Max normalization with exported parameters in `norm_params.json`.
+        * Trains to final MSE error: 0.004848 (~98.1% accuracy, MAE: 9,825 attendees).
+        * Serializes network architecture and weights to `model_weights.json`.
+    - Live Inference Engine (server/prediction/mlModel.js):
+        * Auto-loads trained weights at server launch.
+        * Predicts Zone A, Transit, and Parking loads for 15m, 30m, and 45m time horizons.
+        * Exposes getModelMetrics() supplying architecture, error, accuracy, and sample count.
+    - Dual-Path Prediction Router (server/prediction/predictionService.js):
+        * Prioritizes ML inference (`source: 'ml'`); transparently activates deterministic
+          simulation extrapolation if model fails or is uninitialized (`source: 'fallback-simulation'`).
+
+[x] 13. DYNAMIC PREDICTIONS UI & PREEMPTIVE MITIGATION:
+    - PredictionsPage.tsx:
+        * Live Model Metrics Banner displaying Neural Network architecture (16->26->16->3),
+          training iterations, MSE loss (0.0048), and real-time inference status.
+        * Multi-Horizon Capacity Matrix (NOW / +15m / +30m / +45m) with risk badges.
+        * Real-Time Causal Explanations highlighting primary drivers (e.g. rain impact, gate delay).
+        * 1-Click "PREEMPT BOTTLENECK" action: dynamically simulates shifting crowd from Zone A to Zone C.
+        * Dynamic Mitigation Success Banner displaying before/after load delta and "Reset Intervention" button.
+
+[x] 14. INTERACTIVE TEMPORAL ANALYTICS ENGINE:
+    - AnalyticsPage.tsx:
+        * Interactive Timeframe Switcher: Supports 2H, 6H, 12H, and 24H intervals.
+        * Reactive Recharts graphs: dynamically recalculates hourly actual trend data and
+          appends the +45-minute forecasted stress curve.
+        * Cross-Sector Telemetry: AreaChart tracking Venue, Transit, and Parking loads over selected window.
+
+[x] 15. GEOSPATIAL MAP REFINEMENT & FULL-SCREEN IMMERSION:
+    - RealMumbaiMap.tsx:
+        * Upgraded basemap to ESRI World Dark Gray Canvas (Base & Reference tiles) — zero watermarks,
+          clean high-contrast night aesthetics.
+        * Configured maxzoom: 16 with deep-zoom overzooming (up to 17.5) to prevent tile dropouts.
+        * Bottom-anchored custom HTML markers with glowing risk borders and load percentage badges.
+        * Dynamic view modes: "Current" vs "Predicted (+30m Risk)" markers.
+        * Fullscreen Toggle Control: 1-click button (expand/collapse) utilizing native HTML5 Fullscreen API
+          with seamless CSS fallback and automatic MapLibre canvas resize on toggle or ESC.
+
+[x] 16. EVENT ONBOARDING & CANONICAL STATE INITIALIZATION:
+    - OnboardingPage.tsx & eventConfig.js:
+        * Collects event name, expected attendees, date/time, venue selection, event type preset,
+          facility registry selection, and ticketing mode.
+        * Persists configuration to Firebase RTDB and re-seeds canonical state for live sessions.
+
+
+4. FILE MAP & ARCHITECTURAL ROLES
+--------------------------------------------------------------------------------
+ROOT:
+  ├── run.bat                     # Windows batch launcher (starts Server & Client concurrently)
+  ├── Project_details.txt         # Master project specification document (Technical & Implementation Details)
+  ├── User_Functional_Overview.txt# End-user operational guide & Hinglish feature overview
+  ├── README.md                   # Complete repository documentation & architecture guide
+  └── .gitignore
+
+SERVER (server/):
+  ├── prediction/
+  │   ├── dataGenerator.js         # Synthetic training data generator driving simulateScenario
+  │   ├── trainModel.js            # ML training pipeline script: trains brain.js neural network
+  │   ├── mlModel.js               # Neural network inference runtime, norm transforms, & metrics
+  │   ├── explain.js               # Causal explanation & top contributor extractor from scenario deltas
+  │   ├── fallbackForecast.js      # Physics-based deterministic multi-horizon extrapolation
+  │   ├── predictionRoutes.js      # Express router for GET /api/predictions & POST /api/predictions/scenario
+  │   ├── predictionService.js     # ML model seam & dual-path predictive service
+  │   ├── riskClassifier.js        # Risk level classification & time-to-threshold linear interpolation
+  │   ├── riskClassifier.test.js   # 14-test unit test harness for risk classifier
+  │   ├── test_prediction_service.js # 40-test standalone verification harness for predictions
+  │   └── data/
+  │       ├── training_data.csv    # 20,000-row synthetic training dataset (17 feature columns)
+  │       ├── model_weights.json   # Serialized brain.js neural network weights & layers
+  │       ├── norm_params.json     # Min-max normalization boundaries for inputs & outputs
+  │       └── model_metrics.json   # Verified test metrics (Architecture, MSE, MAE, accuracy)
+  ├── eventConfig.js              # Event configuration persistence & canonical state seed controller
+  ├── simulationEngine.js         # Core mathematical simulation, stress index, conservation, ripple engine
+  ├── index.js                    # Express REST API, Firebase RTDB sync, endpoints controller
+  ├── firebase.js                 # Firebase Admin SDK initialization & connection handler
+  ├── serviceAccountKey.json      # Firebase service credentials (safely ignored in git)
+  ├── test_simulation.js          # 80-test validation test harness covering all Phase 1 constraints
+  ├── test_e2e_api.js             # Live API verification script testing http://localhost:5000
+  ├── seed.js                     # Database seeder script
+  └── package.json
+
+CLIENT (client/):
+  ├── src/
+  │   ├── pages/
+  │   │   ├── CommandCenterPage.tsx  # Main Dashboard (Real Map, 6 Dynamic KPI cards, live telemetry)
+  │   │   ├── SimulatorPage.tsx      # What-If Simulator (Scenario controls, dynamic calculation, before/after)
+  │   │   ├── PredictionsPage.tsx    # Predictive forecasting (ML metrics banner, +15/+30/+45m, mitigation banner)
+  │   │   ├── OperationsPage.tsx     # Prescriptive action cards (Visitor redirect, shuttle reroute, parking shift)
+  │   │   ├── AnalyticsPage.tsx      # Temporal telemetry trend charts (Interactive 2H/6H/12H/24H switcher)
+  │   │   ├── AlertsPage.tsx         # Structured anomaly triage (Critical, Attention, Insight)
+  │   │   ├── DigitalTwinPage.tsx    # Multi-facility layer inspector (Venues, Hotels, Transit, Parking)
+  │   │   ├── LoginPage.tsx          # Authentication login
+  │   │   ├── SignupPage.tsx         # Account creation
+  │   │   ├── OnboardingPage.tsx     # Role & clearance onboarding with dynamic event setup
+  │   │   └── SettingsPage.tsx       # System parameters & clearance threshold settings
+  │   ├── components/
+  │   │   ├── RealMumbaiMap.tsx      # MapLibre GL map with ESRI tiles, bottom markers, routes, & Fullscreen
+  │   │   ├── Navbar.tsx             # Main navigation bar with simulation status heartbeat
+  │   │   └── Sidebar.tsx            # Navigation sidebar
+  │   ├── context/
+  │   │   └── AuthContext.tsx        # Authentication & user profile state
+  │   ├── data/
+  │   │   ├── mumbaiLocations.ts     # Verified Mumbai coordinates & locations metadata
+  │   │   └── eventTypePresets.ts    # Preset profiles (Concert, Sports, Summit) with custom weights
+  │   ├── App.tsx                    # Routes & layout wrapper
+  │   ├── main.tsx                   # React root mount
+  │   └── index.css                  # Tailwind styles & theme variables
+  ├── vite.config.ts                 # Vite config with proxy (/api -> localhost:5000)
+  ├── tsconfig.json
+  └── package.json
+
+
+5. API SPECIFICATION
+--------------------------------------------------------------------------------
+GET  /api/events                - Returns canonical event state (Stress %, loads, visitor count)
+GET  /api/digital-twin          - Returns all 15 infrastructure facilities + event summary
+GET  /api/venues                - Returns venue facilities (JWCC BKC)
+GET  /api/hotels                - Returns 6 verified Mumbai hotels with occupancy
+GET  /api/transit               - Returns 4 transit hubs (BKC Metro Line 3, Bandra, Kurla, CSMIA)
+GET  /api/parking               - Returns 3 parking hubs (JWCC On-Premises, Kalina, Bandra)
+GET  /api/shuttles              - Returns shuttle corridors (Kalina-JWCC Express)
+GET  /api/predictions          - Multi-horizon forecasts (15/30/45m), 7 resources, risk labels, nextCriticalEvent, source ('ml' | 'fallback-simulation'), and modelMetrics
+POST /api/predictions/scenario - What-If predictive forecast: simulation state -> ML/fallback -> resource forecasts, contributors, and modelMetrics
+GET  /api/alerts                - Returns dynamic anomaly alerts generated from state
+POST /api/simulation            - What-If engine: calculates unmitigated and mitigated states
+POST /api/interventions/simulate - Simulates rebalancing, updates canonical state & persists to Firebase
+POST /api/event-config         - Saves event setup to Firebase RTDB and re-initializes canonical state
+GET  /api/event-config          - Returns active event configuration
+POST /api/digital-twin/reset    - Resets canonical state back to baseline
+
+
+6. HOW TO RUN THE PROJECT
+--------------------------------------------------------------------------------
+Method A (Single-Click):
+  Double-click `run.bat` in the project root.
+
+Method B (Manual CLI):
+  Terminal 1 (Backend):
+    cd server
+    node index.js
+    -> Server runs on http://localhost:5000 (loads brain.js Neural Network weights)
+
+  Terminal 2 (Frontend):
+    cd client
+    npm run dev
+    -> Client runs on http://localhost:3000
+
+Method C (Train ML Model & Run Test Suites):
+  cd server
+  node prediction/trainModel.js               # Trains brain.js neural network and exports weights
+  node test_simulation.js                     # Runs 80-test Phase 1 simulation validation suite
+  node test_e2e_api.js                         # Runs live E2E API verification
+  node prediction/test_prediction_service.js # Runs 40-test prediction pipeline suite
+  node prediction/riskClassifier.test.js     # Runs 14-test risk classifier & interpolation suite
+  node prediction/dataGenerator.js --count 20000 # Generates ML training data CSV
+
+
+================================================================================
+END OF PROJECT DETAILS (Last Updated: Full-Stack ML Integration & Production Map Complete)
+================================================================================

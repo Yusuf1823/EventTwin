@@ -1,0 +1,82 @@
+{
+  "visitor_count": {
+    "min": 300000,
+    "max": 699966,
+    "range": 399966
+  },
+  "zone_a_demand": {
+    "min": 123507,
+    "max": 459978,
+    "range": 336471
+  },
+  "zone_b_demand": {
+    "min": 58255,
+    "max": 277259,
+    "range": 219004
+  },
+  "zone_c_demand": {
+    "min": 28632,
+    "max": 198678,
+    "range": 170046
+  },
+  "venue_load": {
+    "min": 46,
+    "max": 302,
+    "range": 256
+  },
+  "transit_load": {
+    "min": 40,
+    "max": 259,
+    "range": 219
+  },
+  "parking_load": {
+    "min": 38,
+    "max": 206,
+    "range": 168
+  },
+  "hotel_load": {
+    "min": 60,
+    "max": 89,
+    "range": 29
+  },
+  "rain_factor": {
+    "min": 0,
+    "max": 100,
+    "range": 100
+  },
+  "transit_disruption": {
+    "min": 0,
+    "max": 50,
+    "range": 50
+  },
+  "parking_reduction": {
+    "min": 0,
+    "max": 40,
+    "range": 40
+  },
+  "venue_delay": {
+    "min": 0,
+    "max": 30,
+    "range": 30
+  },
+  "visitor_growth": {
+    "min": 0,
+    "max": 20,
+    "range": 20
+  },
+  "future_zone_a_demand": {
+    "min": 125946,
+    "max": 546429,
+    "range": 420483
+  },
+  "future_zone_b_demand": {
+    "min": 61771,
+    "max": 328047,
+    "range": 266276
+  },
+  "future_zone_c_demand": {
+    "min": 29012,
+    "max": 244781,
+    "range": 215769
+  }
+}

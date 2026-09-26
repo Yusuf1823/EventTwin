@@ -1,0 +1,9 @@
+node_modules/
+server/serviceAccountKey.json
+server/.env
+client/.env
+dist/
+.DS_Store
+_backup_previous/
+__pycache__/
+*.log
