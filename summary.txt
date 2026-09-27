@@ -1,0 +1,30 @@
+====================================================
+PROJECT EVENTTWIN - CURRENT CONTEXT & SUMMARY 
+====================================================
+
+# 1. PROJECT OVERVIEW
+Project Name: EventTwin
+Concept: A Digital Twin / Command Center for Mumbai Mega-Events (e.g. Jio World Convention Centre). It uses ML to predict crowd bottlenecks, manage resources, and simulate scenarios.
+Tech Stack: React (Vite, TypeScript, Tailwind) for Frontend + Node.js (Express) for Backend + Firebase Realtime Database for state management.
+
+# 2. DEPLOYMENT & ARCHITECTURE (Currently Live)
+- BACKEND: Hosted on Render (https://eventtwin.onrender.com). It runs the Express server, connects to Firebase (credentials are securely stored in Render Secret Files), and serves API endpoints like `/api/events`, `/api/alerts`, etc.
+- MAIN FRONTEND (Command Center): Hosted on Vercel (https://event-twin-seven.vercel.app). 
+- PROXY/CORS SETUP: 
+  - The Vercel frontend has a `client/vercel.json` file that proxies all `/api/*` requests to `https://eventtwin.onrender.com/api/*`.
+  - The Render backend `server/index.js` has `https://event-twin-seven.vercel.app` added to its CORS `allowedOrigins`.
+
+# 3. CURRENT SCENARIO & RECENT ACTIONS
+- The Command Center (Frontend + Backend) is 100% successfully deployed and talking to each other. Firebase is live.
+- The AI temporarily built a "Visitor POV" (Attendee view) directly inside the Command Center codebase, BUT THE USER REQUESTED IT BE DELETED.
+- We have completely deleted the Visitor POV code from this repository and reset the git history.
+
+# 4. WHAT THE USER WANTS TO DO NEXT (INSTRUCTIONS FOR THE NEXT AI)
+- The user wants to build the "Visitor POV" (Attendee Mobile App) as a COMPLETELY SEPARATE, STANDALONE FRONTEND PROJECT, not part of this repository.
+- Your Goal: Help the user create this new independent frontend project.
+- How it connects: This new Visitor App should NOT have its own backend. It should make API calls directly to the existing Render backend (`https://eventtwin.onrender.com/api/...`).
+- Important Step: Once the new Visitor App is deployed (e.g., on a new Vercel domain), you MUST come back to this repository and add that new domain to `server/index.js` -> `allowedOrigins` array, so the backend accepts its requests.
+
+====================================================
+AI NOTE: Read this file carefully before proceeding. Do not rebuild the Visitor POV inside this repository!
+====================================================
