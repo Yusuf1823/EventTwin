@@ -24,6 +24,7 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
   'https://eventtwin.onrender.com',
   'https://your-frontend.vercel.app',
+  'https://event-twin-seven.vercel.app',
   'http://localhost:3000',
   'http://localhost:3001',
   'http://localhost:5173'
