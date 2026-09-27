@@ -21,6 +21,7 @@ import {
 import { WeatherHUD } from '../components/WeatherHUD';
 import { RealMumbaiMap } from '../components/RealMumbaiMap';
 import { NugenCopilot } from '../components/NugenCopilot';
+import { useTutorial } from '../tutorial/TutorialContext';
 import { REAL_MUMBAI_LOCATIONS, LocationItem } from '../data/mumbaiLocations';
 import { GlassCard } from '../ui/GlassCard';
 import { PageHeader } from '../ui/PageHeader';
@@ -43,6 +44,7 @@ export const CommandCenterPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [eventMeta, setEventMeta] = useState<any>(null);
   const [nextCriticalEvent, setNextCriticalEvent] = useState<any>(null);
+  const { updateTutorialData } = useTutorial();
 
   const fetchTwinData = async () => {
     setIsLoading(true);
@@ -112,6 +114,11 @@ export const CommandCenterPage: React.FC = () => {
 
   const cityStress  = eventMeta?.cityStressPct ?? 69;
   const visitorsK   = eventMeta?.currentVisitorsSimulated ? Math.round(eventMeta.currentVisitorsSimulated / 1000) : 500;
+  
+  useEffect(() => {
+    updateTutorialData({ cityStress });
+  }, [cityStress]);
+
   const criticalAreas = eventMeta?.criticalAreasCount ?? 3;
   const transitLoad = eventMeta?.transitLoadPct ?? 70;
   const parkingLoad = eventMeta?.parkingLoadPct ?? 63;
@@ -224,7 +231,7 @@ export const CommandCenterPage: React.FC = () => {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
           {/* City Stress — featured/wide */}
-          <div className="col-span-2 relative">
+          <div className="col-span-2 relative" data-tutorial="stress-index">
             <StatCard
               label="City Stress Index"
               value={cityStress}
@@ -300,7 +307,7 @@ export const CommandCenterPage: React.FC = () => {
       {/* ── MAIN GRID: MAP + LOCATION PANEL ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Map card */}
-        <GlassCard className="lg:col-span-8 flex flex-col gap-4" padded={false}>
+        <GlassCard className="lg:col-span-8 flex flex-col gap-4" padded={false} data-tutorial="digital-twin-map">
           <div className="flex items-center justify-between gap-3 px-5 pt-5">
             <SectionHeader
               title="Live Digital Twin"

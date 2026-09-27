@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Settings, UserCheck, Shield, Sliders, RotateCcw, Check } from 'lucide-react';
+import { Settings, UserCheck, Shield, Sliders, RotateCcw, Check, GraduationCap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useTutorial } from '../tutorial/TutorialContext';
 
 export const SettingsPage: React.FC = () => {
   const { user } = useAuth();
+  const { startTutorial } = useTutorial();
   const [eventName, setEventName] = useState('Mumbai Global Mega-Concert & Expo 2026');
   const [threshold, setThreshold] = useState(85);
   const [saved, setSaved] = useState(false);
@@ -65,6 +67,23 @@ export const SettingsPage: React.FC = () => {
               onChange={(e) => setThreshold(parseInt(e.target.value))}
               className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
             />
+          </div>
+        </div>
+
+        {/* Tutorial */}
+        <div className="flex flex-col gap-3 mt-1 border-t border-slate-800 pt-5">
+          <h3 className="text-xs font-bold text-white uppercase tracking-wider">Onboarding & Tutorial</h3>
+          <div className="flex items-center justify-between">
+            <div className="text-xs text-slate-400 max-w-sm leading-relaxed">
+              Need a refresher on how to use the EventTwin dashboard, digital twin map, and predictions engine?
+            </div>
+            <button
+              onClick={startTutorial}
+              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-bold transition flex items-center gap-2 cursor-pointer shrink-0"
+            >
+              <GraduationCap className="w-4 h-4 text-cyan-400" />
+              Replay Tutorial
+            </button>
           </div>
         </div>
 

@@ -67,7 +67,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       )}
     >
       <div className="min-h-0 flex flex-col">
-        <div className={cn('flex items-center mb-5 px-1 pt-1', collapsed ? 'justify-center' : 'justify-between')}>
+        <div className={cn('flex items-center mb-5 px-1 pt-1', collapsed ? 'flex-col gap-3 justify-center' : 'justify-between')}>
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-400 via-indigo-500 to-violet-600 flex items-center justify-center shadow-[0_0_20px_rgba(34,211,238,0.25)] border border-white/20 shrink-0">
               <Shield className="w-5 h-5 text-white" />
@@ -82,27 +82,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
             )}
           </div>
 
-          {onClose && (
-            <button
-              onClick={onClose}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 lg:hidden cursor-pointer"
-              aria-label="Close navigation sidebar"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
-        </div>
+          <div className="flex items-center gap-1">
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 lg:hidden cursor-pointer"
+                aria-label="Close navigation sidebar"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
 
-        {onToggleCollapse && (
-          <button
-            type="button"
-            onClick={onToggleCollapse}
-            className="hidden lg:flex items-center justify-center mb-3 p-2 rounded-lg text-slate-500 hover:text-cyan-300 hover:bg-white/5 cursor-pointer"
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {collapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
-          </button>
-        )}
+            {onToggleCollapse && (
+              <button
+                type="button"
+                onClick={onToggleCollapse}
+                className="hidden lg:flex items-center justify-center p-1.5 rounded-lg text-slate-500 hover:text-cyan-300 hover:bg-white/5 cursor-pointer"
+                aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              >
+                {collapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+              </button>
+            )}
+          </div>
+        </div>
 
         <nav className="flex flex-col gap-0.5 overflow-y-auto pr-0.5">
           {NAV_ITEMS.map((item) => {

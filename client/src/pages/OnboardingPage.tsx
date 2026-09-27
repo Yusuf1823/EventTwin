@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTutorial } from '../tutorial/TutorialContext';
 import {
   Shield,
   Sparkles,
@@ -45,6 +46,7 @@ export interface CustomFacilityInput {
 export const OnboardingPage: React.FC = () => {
   const { user, completeOnboarding } = useAuth();
   const navigate = useNavigate();
+  const { startTutorial } = useTutorial();
 
   // Step 1: Basic Details
   const [eventName, setEventName] = useState('Mumbai Global Mega-Concert & Expo 2026');
@@ -225,15 +227,33 @@ export const OnboardingPage: React.FC = () => {
       } else {
         clearInterval(interval);
         completeOnboarding();
-        navigate('/dashboard');
+        
+        // If it's a real Firebase user (e.g. has a uid), automatically start the guided tour
+        // which will navigate them to the command center directly.
+        if (user && (user as any).uid) {
+          startTutorial();
+        } else {
+          navigate('/dashboard');
+        }
       }
     }, 450);
   };
 
   return (
-    <div className="min-h-screen bg-[#080d1a] flex flex-col items-center justify-center p-4 sm:p-6 text-slate-100 relative overflow-hidden">
+    <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4 sm:p-6 text-slate-100 relative overflow-hidden">
+      {/* 3D Background Video */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover z-0 opacity-60 mix-blend-screen"
+      >
+        <source src="/bg-video.mp4" type="video/mp4" />
+      </video>
+
       {/* Background ambient lighting */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-gradient-to-b from-indigo-600/15 via-cyan-600/10 to-transparent blur-3xl pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-gradient-to-b from-indigo-600/30 via-cyan-600/15 to-transparent blur-3xl pointer-events-none z-0" />
 
       {/* Main Container */}
       <div className="w-full max-w-2xl glass-panel rounded-2xl p-6 sm:p-8 border border-slate-800 shadow-2xl relative z-10 my-6">

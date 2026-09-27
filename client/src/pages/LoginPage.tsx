@@ -34,9 +34,20 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#080d1a] flex flex-col items-center justify-center p-6 relative overflow-hidden text-slate-100">
+    <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 relative overflow-hidden text-slate-100">
+      {/* 3D Background Video */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover z-0 opacity-60 mix-blend-screen"
+      >
+        <source src="/bg-video.mp4" type="video/mp4" />
+      </video>
+
       {/* Background ambient lighting */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-gradient-to-b from-indigo-600/20 via-cyan-600/10 to-transparent blur-3xl pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-gradient-to-b from-indigo-600/40 via-cyan-600/20 to-transparent blur-3xl pointer-events-none z-0" />
 
       {/* Card */}
       <div className="w-full max-w-md glass-panel rounded-2xl p-8 border border-slate-800 shadow-2xl relative z-10">

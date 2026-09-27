@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Bot, Sparkles, Send, RefreshCw, ShieldAlert, CloudRain, ShieldCheck, Compass, Hotel } from 'lucide-react';
+import { useTutorial } from '../tutorial/TutorialContext';
 
 interface NugenCopilotProps {
   currentMetrics?: {
@@ -24,6 +25,7 @@ export const NugenCopilot: React.FC<NugenCopilotProps> = ({
   const [query, setQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [adviceData, setAdviceData] = useState<any>(null);
+  const { markActionComplete } = useTutorial();
 
   const QUICK_PROMPTS = [
     {
@@ -63,6 +65,7 @@ export const NugenCopilot: React.FC<NugenCopilotProps> = ({
       if (res.ok) {
         const data = await res.json();
         setAdviceData(data);
+        markActionComplete('nugen_query');
       }
     } catch (err) {
       console.warn('Failed to fetch Nugen advice:', err);

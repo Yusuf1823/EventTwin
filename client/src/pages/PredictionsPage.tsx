@@ -277,17 +277,19 @@ export const PredictionsPage: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-6 page-enter">
-      <PageHeader
-        title="Predictive Forecasting"
-        accent={
-          <div className="flex items-center gap-1.5">
-            <TrendingUp className="w-3.5 h-3.5 text-sky-400" />
-            <span className="text-[10px] font-mono text-sky-400 font-bold uppercase tracking-wider">Multi-Horizon Engine · NOW +15m +30m +45m</span>
-          </div>
-        }
-        subtitle="Forward-looking load across NOW, +15m, +30m, and +45m horizons."
-        actions={null}
-      />
+      <div data-tutorial="predictions-banner">
+        <PageHeader
+          title="Predictive Forecasting"
+          accent={
+            <div className="flex items-center gap-1.5">
+              <TrendingUp className="w-3.5 h-3.5 text-sky-400" />
+              <span className="text-[10px] font-mono text-sky-400 font-bold uppercase tracking-wider">Multi-Horizon Engine · NOW +15m +30m +45m</span>
+            </div>
+          }
+          subtitle="Forward-looking load across NOW, +15m, +30m, and +45m horizons."
+          actions={null}
+        />
+      </div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 -mt-2">
         <div className="hidden" />
 

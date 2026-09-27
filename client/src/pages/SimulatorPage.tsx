@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Sliders, RefreshCw, ArrowRight, Sparkles, AlertTriangle, CheckCircle2, ShieldCheck, CloudRain, Clock, Bus, Car, Satellite, Zap } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { NugenCopilot } from '../components/NugenCopilot';
+import { useTutorial } from '../tutorial/TutorialContext';
 import { PageHeader } from '../ui/PageHeader';
 import { SectionHeader } from '../ui/SectionHeader';
 import { GlassCard } from '../ui/GlassCard';
@@ -139,9 +140,15 @@ export const SimulatorPage: React.FC = () => {
   const [liveWeatherMode, setLiveWeatherMode] = useState(false);
   const [liveWeatherData, setLiveWeatherData] = useState<any>(null);
   const [fetchingWeather, setFetchingWeather] = useState(false);
+  const { markActionComplete } = useTutorial();
+
+  const handleSliderAction = () => {
+    markActionComplete('simulator_moved');
+  };
 
   // Apply one-click preset scenarios for quick demonstration
   const applyPreset = (preset: 'monsoon' | 'heatwave' | 'drizzle' | 'baseline') => {
+    handleSliderAction();
     setIsRebalanced(false);
     if (preset === 'monsoon') {
       setVisitorIncreasePct(30);
@@ -305,7 +312,7 @@ export const SimulatorPage: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Scenario Controls (Col 5) */}
-        <GlassCard className="lg:col-span-5 flex flex-col justify-between gap-5" variant="elevated">
+        <GlassCard className="lg:col-span-5 flex flex-col justify-between gap-5" variant="elevated" data-tutorial="simulator-controls">
           <div>
             <SectionHeader
               title="Scenario Controls"
@@ -375,6 +382,7 @@ export const SimulatorPage: React.FC = () => {
                 onChange={(e) => {
                   setVisitorIncreasePct(parseInt(e.target.value));
                   setIsRebalanced(false);
+                  handleSliderAction();
                 }}
                 className="et-range"
               />
@@ -440,6 +448,7 @@ export const SimulatorPage: React.FC = () => {
                   else setFloodingSeverity('NONE');
                   setIsRebalanced(false);
                   if (liveWeatherMode) setLiveWeatherMode(false);
+                  handleSliderAction();
                 }}
                 className="et-range"
               />
@@ -796,7 +805,8 @@ export const SimulatorPage: React.FC = () => {
       </div>
 
       {/* NUGEN INTELLIGENCE COPILOT (TASK 2 MANDATORY TECHNOLOGY) */}
-      <NugenCopilot
+      <div data-tutorial="nugen-copilot">
+        <NugenCopilot
         currentMetrics={{
           cityStress: after.cityStress,
           venueLoad: after.venueLoad,
@@ -818,6 +828,7 @@ export const SimulatorPage: React.FC = () => {
           venueDelayMinutes
         }}
       />
+      </div>
     </div>
   );
 };

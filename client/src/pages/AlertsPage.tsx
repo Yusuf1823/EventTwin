@@ -244,7 +244,7 @@ export const AlertsPage: React.FC = () => {
       )}
 
       {/* ── ALERT FEED ── */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4" data-tutorial="alerts-panel">
         {filtered.map((alert: AlertItem, idx: number) => {
           const cfg = getSeverityConfig(alert.severity);
           const isPredCrit = alert.severity === 'PREDICTED CRITICAL RISK';

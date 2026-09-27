@@ -91,6 +91,23 @@ export const RealMumbaiMap: React.FC<RealMumbaiMapProps> = ({
     return () => document.removeEventListener('fullscreenchange', handleChange);
   }, []);
 
+  // Expose show flood layer to tutorial engine
+  useEffect(() => {
+    const handleShowFloodLayer = () => {
+      setShowWeatherOverlay(true);
+      if (mapRef.current) {
+        if (mapRef.current.getLayer('flood-zones-fill')) {
+          mapRef.current.setLayoutProperty('flood-zones-fill', 'visibility', 'visible');
+        }
+        if (mapRef.current.getLayer('flood-zones-line')) {
+          mapRef.current.setLayoutProperty('flood-zones-line', 'visibility', 'visible');
+        }
+      }
+    };
+    window.addEventListener('et-tutorial-show-flood', handleShowFloodLayer);
+    return () => window.removeEventListener('et-tutorial-show-flood', handleShowFloodLayer);
+  }, []);
+
   // ESC key fallback for CSS-only fullscreen
   useEffect(() => {
     if (!isFullscreen) return;

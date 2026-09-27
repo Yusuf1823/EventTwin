@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Compass, CheckCircle2, Clock, Send, ShieldAlert, ArrowRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { PageHeader } from '../ui/PageHeader';
+import { useTutorial } from '../tutorial/TutorialContext';
 
 interface OperationAction {
   id: string;
@@ -45,6 +46,11 @@ const INITIAL_OPERATIONS: OperationAction[] = [
 
 export const OperationsPage: React.FC = () => {
   const [operations, setOperations] = useState<OperationAction[]>(INITIAL_OPERATIONS);
+  const { updateTutorialData } = useTutorial();
+
+  React.useEffect(() => {
+    updateTutorialData({ firstOperation: operations[0] });
+  }, [operations]);
 
   const handleAdvanceState = async (id: string) => {
     const op = operations.find(o => o.id === id);
@@ -130,6 +136,7 @@ export const OperationsPage: React.FC = () => {
           return (
             <div
               key={op.id}
+              data-tutorial={op.id === 'op_1' ? 'operations-card' : undefined}
               className={`glass-panel p-6 rounded-2xl border flex flex-col justify-between gap-6 transition-all ${
                 isDispatched
                   ? 'border-emerald-500/50 bg-emerald-950/15'

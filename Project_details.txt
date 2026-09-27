@@ -383,7 +383,29 @@ POST /api/digital-twin/reset    - Resets canonical state back to baseline
       and automated traffic diversion to elevated Santacruz-Chembur Link Road (SCLR).
 
 
-9. HOW TO RUN THE PROJECT
+9. HACKCELESTIAL 3.0 FINAL POLISH & ONBOARDING / TUTORIAL PIPELINE (LATEST)
+--------------------------------------------------------------------------------
+[x] 1. INTERACTIVE 7-STEP TUTORIAL ENGINE (TutorialOverlay.tsx):
+    - Fully custom, zero-dependency tutorial framework utilizing React Context and createPortal.
+    - SVG-based mask spotlight dynamically tracks elements (useSpotlightRect.ts) across window resizes, scrolling, and DOM mutations using requestAnimationFrame.
+    - Glassmorphic animated tooltip (spring transitions) with directional indicator arrows pointing exactly at target elements.
+    - Fully responsive: Adjusts layout (top/bottom/left/right) based on dynamic screen boundaries and scroll-into-view tracking.
+    - Clickable step-dot rail for non-linear navigation and celebratory canvas-confetti on tutorial completion.
+
+[x] 2. ACTION-GATED INTERACTIVITY & LIVE DATA HYDRATION:
+    - Tooltip contents are hydrated with live state telemetry (e.g., dynamically injecting actual 69% City Stress into Step 1).
+    - Operations Step displays the real-time AI recommendation (WHY, ACTION, EFFECT) directly inside the tutorial UI.
+    - Task-Gating: Next steps are blocked until the user physically interacts with the application (e.g., moving a What-If Simulator slider, or querying the Nugen Copilot).
+    - Robust 10-second fallback timer that converts the Next button to a 'SKIP' action to prevent hard-blocking.
+    - Interactive tooltip actions (e.g., 'Show Flood Layer' button inside the tooltip triggers map functions via custom event dispatch).
+
+[x] 3. IMMERSIVE VIDEO BACKGROUNDS & UI REFINEMENT:
+    - Integrated high-quality 3D looping video backgrounds (bg2.mp4) globally injected via DashboardLayout.tsx (relative z-10 stacking).
+    - Specific standalone globe videos for LoginPage and OnboardingPage.
+    - Re-architected mobile and desktop Header / Sidebar layout: moved collapse toggle to the top navigation bar alongside the EventTwin logo for immediate accessibility.
+
+
+10. HOW TO RUN THE PROJECT
 --------------------------------------------------------------------------------
 Method A (Single-Click):
   Double-click `run.bat` in the project root.

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, NavLink } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
-import { Menu, Shield, Activity, ChevronRight } from 'lucide-react';
+import { Menu, Shield, Activity, ChevronRight, GraduationCap } from 'lucide-react';
+import { useTutorial } from '../tutorial/TutorialContext';
 
 const ROUTE_LABELS: Record<string, string> = {
   '/dashboard':    'Overview',
@@ -22,6 +23,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem('et-sidebar-collapsed') === '1');
   const [tick, setTick] = useState(0);
   const location = useLocation();
+  const { startTutorial } = useTutorial();
 
   useEffect(() => {
     const id = setInterval(() => setTick((t) => (t >= 59 ? 0 : t + 1)), 1000);
@@ -39,10 +41,19 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
   const pageLabel = ROUTE_LABELS[location.pathname] || location.pathname.replace('/', '');
 
   return (
-    <div className="min-h-screen bg-[#05080f] flex flex-col lg:flex-row text-slate-100 selection:bg-cyan-500/30 selection:text-white">
+    <div className="min-h-screen bg-[#05080f] flex flex-col lg:flex-row text-slate-100 selection:bg-cyan-500/30 selection:text-white relative">
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="fixed inset-0 w-full h-full object-cover z-0 opacity-20 pointer-events-none"
+      >
+        <source src="/bg2.mp4" type="video/mp4" />
+      </video>
 
       {/* ── MOBILE TOP BAR ── */}
-      <header className="lg:hidden sticky top-0 z-40 bg-[#070b14]/92 backdrop-blur-xl border-b border-white/8 px-4 py-3 flex items-center justify-between">
+      <header className="lg:hidden sticky top-0 z-40 bg-[#070b14]/80 backdrop-blur-xl border-b border-white/8 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
             onClick={() => setMobileMenuOpen(true)}
@@ -81,7 +92,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
         onToggleCollapse={toggleCollapse}
       />
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 relative z-10">
         {/* ── DESKTOP TOPBAR ── */}
         <div className="hidden lg:flex items-center justify-between px-6 xl:px-8 py-2.5 border-b border-white/6 bg-[#070b14]/72 backdrop-blur-xl sticky top-0 z-30">
           {/* Breadcrumb */}
@@ -91,8 +102,14 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
             <span className="text-slate-300 font-semibold">{pageLabel}</span>
           </nav>
 
-          {/* Status pill */}
+          {/* Status pill & Controls */}
           <div className="flex items-center gap-3">
+            <button 
+              onClick={startTutorial}
+              className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 text-indigo-300 hover:text-indigo-200 transition text-[10px] font-mono font-bold uppercase tracking-wide cursor-pointer"
+            >
+              <GraduationCap className="w-3.5 h-3.5" /> Guided Tour
+            </button>
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/8 border border-emerald-500/18 text-[10px]">
               <Activity className="w-3 h-3 text-emerald-400" />
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 et-heartbeat" />

@@ -20,11 +20,16 @@ import { WeatherPage } from './pages/WeatherPage';
 import { SocialPage } from './pages/SocialPage';
 import { NugenPage } from './pages/NugenPage';
 
+import { TutorialProvider } from './tutorial/TutorialContext';
+import { TutorialOverlay } from './tutorial/TutorialOverlay';
+
 export function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <Routes>
+        <TutorialProvider>
+          <TutorialOverlay />
+          <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
@@ -155,6 +160,7 @@ export function App() {
           {/* Catch-all fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </TutorialProvider>
       </BrowserRouter>
     </AuthProvider>
   );
