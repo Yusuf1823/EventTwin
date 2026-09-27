@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Bot, Sparkles, Send, RefreshCw, ShieldAlert, CloudRain, ShieldCheck, Compass, Hotel } from 'lucide-react';
 import { useTutorial } from '../tutorial/TutorialContext';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface NugenCopilotProps {
   currentMetrics?: {
@@ -178,8 +180,21 @@ export const NugenCopilot: React.FC<NugenCopilotProps> = ({
             </span>
           </div>
 
-          <div className="text-slate-200 leading-relaxed font-sans whitespace-pre-line text-[11.5px] max-h-60 overflow-y-auto pr-1">
-            {adviceData.advice}
+          <div className="text-slate-200 leading-relaxed font-sans text-[11.5px] max-h-60 overflow-y-auto pr-1">
+            <ReactMarkdown 
+              remarkPlugins={[remarkGfm]}
+              components={{
+                table: ({node, ...props}) => <table className="w-full text-left border-collapse border border-slate-700 my-2" {...props} />,
+                th: ({node, ...props}) => <th className="border border-slate-700 bg-slate-800/50 p-2 text-cyan-300 font-semibold" {...props} />,
+                td: ({node, ...props}) => <td className="border border-slate-700 p-2" {...props} />,
+                strong: ({node, ...props}) => <strong className="text-cyan-400 font-bold" {...props} />,
+                p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
+                ul: ({node, ...props}) => <ul className="list-disc pl-4 mb-2 space-y-1" {...props} />,
+                ol: ({node, ...props}) => <ol className="list-decimal pl-4 mb-2 space-y-1" {...props} />,
+              }}
+            >
+              {adviceData.advice}
+            </ReactMarkdown>
           </div>
 
           <div className="flex items-center justify-between text-[9px] text-slate-500 pt-2 border-t border-slate-900 font-mono">
