@@ -30,7 +30,7 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const navigate = useNavigate();
   const location = useLocation();
 
-  const updateTutorialData = (data: any) => setTutorialData(prev => ({ ...prev, ...data }));
+  const updateTutorialData = (data: any) => setTutorialData((prev: any) => ({ ...prev, ...data }));
 
   const markActionComplete = (actionId: string) => {
     const step = TUTORIAL_STEPS[currentStepIndex];
@@ -39,7 +39,7 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  const timerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const executeStep = async (index: number) => {
     const step = TUTORIAL_STEPS[index];
