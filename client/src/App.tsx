@@ -16,6 +16,9 @@ import { OperationsPage } from './pages/OperationsPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { AlertsPage } from './pages/AlertsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { WeatherPage } from './pages/WeatherPage';
+import { SocialPage } from './pages/SocialPage';
+import { NugenPage } from './pages/NugenPage';
 
 export function App() {
   return (
@@ -99,6 +102,26 @@ export function App() {
             }
           />
           <Route
+            path="/weather"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <WeatherPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/social"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <SocialPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/alerts"
             element={
               <ProtectedRoute>
@@ -114,6 +137,16 @@ export function App() {
               <ProtectedRoute>
                 <DashboardLayout>
                   <SettingsPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/nugen"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <NugenPage />
                 </DashboardLayout>
               </ProtectedRoute>
             }

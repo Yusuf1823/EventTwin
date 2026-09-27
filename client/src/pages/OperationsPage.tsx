@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Compass, CheckCircle2, Clock, Send, ShieldAlert, ArrowRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { PageHeader } from '../ui/PageHeader';
 
 interface OperationAction {
   id: string;
@@ -102,21 +103,23 @@ export const OperationsPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-white tracking-tight">Take Action</h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Prescriptive interventions to rebalance urban load across the event ecosystem.
-          </p>
-        </div>
-
-        <div className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-cyan-300 font-mono flex items-center gap-2">
-          <ShieldAlert className="w-3.5 h-3.5 text-cyan-400" />
-          <span>DYNAMIC OPERATIONAL ENGINE</span>
-        </div>
-      </div>
+    <div className="flex flex-col gap-6 page-enter">
+      <PageHeader
+        title="Take Action"
+        accent={
+          <div className="flex items-center gap-1.5">
+            <Compass className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider">Dynamic Operational Engine</span>
+          </div>
+        }
+        subtitle="Prescriptive interventions to rebalance urban load across the event ecosystem."
+        actions={
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-cyan-300 font-mono">
+            <ShieldAlert className="w-3.5 h-3.5 text-cyan-400" />
+            <span>DISPATCH READY</span>
+          </div>
+        }
+      />
 
       {/* Action Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">

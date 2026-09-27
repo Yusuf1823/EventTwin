@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Shield, Lock, Mail, User, Briefcase, ArrowRight } from 'lucide-react';
+import { Shield, Lock, Mail, User, Briefcase, ArrowRight, Database } from 'lucide-react';
 
 export const SignupPage: React.FC = () => {
   const [fullName, setFullName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -16,7 +17,7 @@ export const SignupPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName || !email || !password) {
+    if (!fullName || !username || !email || !password) {
       setError('Please fill in all required fields.');
       return;
     }
@@ -26,12 +27,12 @@ export const SignupPage: React.FC = () => {
     }
     setError('');
     setLoading(true);
-    const success = await signup(fullName, email, password, role);
+    const success = await signup(fullName, email, password, role, username);
     setLoading(false);
     if (success) {
       navigate('/onboarding');
     } else {
-      setError('Unable to create account. Please try again.');
+      setError('Unable to create account in Firebase. Please try a different username.');
     }
   };
 
@@ -48,7 +49,22 @@ export const SignupPage: React.FC = () => {
             <Shield className="w-6 h-6 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-white tracking-tight">Create your EventTwin account</h1>
-          <p className="text-xs text-slate-400 mt-1">by Ghost Protocol • Begin unified city orchestration</p>
+          <p className="text-xs text-slate-400 mt-1">Credentials stored directly in Firebase Realtime Database</p>
+        </div>
+
+        {/* Firebase Live Database Badge */}
+        <div className="mb-4 p-2.5 rounded-xl bg-slate-900/90 border border-indigo-500/30 flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2">
+            <Database className="w-4 h-4 text-cyan-400 shrink-0" />
+            <div className="text-[11px]">
+              <span className="text-slate-300 font-bold">Storage:</span>{' '}
+              <span className="text-cyan-300 font-mono">Firebase RTDB</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-1 text-[10px] text-emerald-400 font-mono font-bold">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>LIVE DATABASE</span>
+          </div>
         </div>
 
         {error && (
@@ -58,7 +74,7 @@ export const SignupPage: React.FC = () => {
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1">Full Name</label>
             <div className="relative">
@@ -67,8 +83,22 @@ export const SignupPage: React.FC = () => {
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="Alex Mercer"
+                placeholder="Commander Alex"
                 className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-10 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-300 mb-1">Username (Firebase ID)</label>
+            <div className="relative">
+              <User className="w-4 h-4 text-cyan-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s+/g, '_'))}
+                placeholder="e.g. alex_ops"
+                className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-10 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition font-mono"
               />
             </div>
           </div>
@@ -137,17 +167,17 @@ export const SignupPage: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-3 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/20 transition flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full mt-3 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/20 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
           >
-            <span>{loading ? 'Creating Account...' : 'Create Account'}</span>
+            <span>{loading ? 'Creating in Firebase...' : 'Create Account in Firebase'}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </form>
 
         {/* Footer Link */}
-        <div className="text-center mt-6 text-xs text-slate-400">
+        <div className="text-center mt-5 text-xs text-slate-400 border-t border-slate-800/80 pt-3">
           Already have an account?{' '}
-          <Link to="/login" className="text-indigo-400 hover:text-indigo-300 font-semibold">
+          <Link to="/login" className="text-indigo-400 hover:text-indigo-300 font-semibold underline underline-offset-2">
             Login
           </Link>
         </div>
@@ -155,3 +185,5 @@ export const SignupPage: React.FC = () => {
     </div>
   );
 };
+
+export default SignupPage;

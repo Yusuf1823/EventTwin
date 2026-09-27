@@ -13,6 +13,9 @@ import {
 import { predictionRouter } from './prediction/predictionRoutes.js';
 import { loadModel } from './prediction/predictionService.js';
 import { saveEventConfig, getEventConfig, initializeStateFromConfig } from './eventConfig.js';
+import { fetchLiveWeather, invalidateWeatherCache } from './weatherService.js';
+import { getLiveSocialSignals } from './socialSignals.js';
+import { getNugenTacticalAdvice, getNugenPipelineStatus } from './nugenService.js';
 
 
 const app = express();
@@ -67,12 +70,22 @@ async function saveEventsData(updates) {
 }
 
 async function getLocationsData() {
+  const baselineLocs = getCanonicalBaselineState().locations;
   if (isFirebaseAvailable && db) {
     try {
       const snap = await db.ref('locations').once('value');
       const val = snap.val();
       if (val) {
-        return Array.isArray(val) ? val : Object.values(val);
+        const raw = Array.isArray(val) ? val : Object.values(val);
+        return raw.map(loc => {
+          const baseLoc = baselineLocs.find(b => b.id === loc.id) || baselineLocs[0];
+          return {
+            ...baseLoc,
+            ...loc,
+            real: { ...(baseLoc.real || {}), ...(loc.real || {}) },
+            simulated: loc.simulated ? { ...baseLoc.simulated, ...loc.simulated } : baseLoc.simulated
+          };
+        });
       }
     } catch (err) {
       console.warn('[Firebase RTDB] Failed to read locations/, using in-memory fallback:', err.message);
@@ -139,78 +152,109 @@ async function updateUser(userId, updates) {
 }
 
 // ==========================================
-// AUTHENTICATION ROUTES
+// AUTHENTICATION ROUTES (FIREBASE REALTIME DATABASE)
 // ==========================================
 app.post('/api/auth/login', async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ error: "Email and password are required." });
+  const { username, email, password } = req.body;
+  const identifier = (username || email || '').trim().toLowerCase();
+
+  if (!identifier || !password) {
+    return res.status(400).json({ error: "Username/Email and password are required." });
   }
 
   const allUsers = await getUsersData();
-  let user = allUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
+  let user = allUsers.find(u =>
+    (u.username && u.username.toLowerCase() === identifier) ||
+    (u.email && u.email.toLowerCase() === identifier) ||
+    (u.name && u.name.toLowerCase() === identifier)
+  );
 
-  if (!user && (email.includes('@') || email === 'demo')) {
+  // If user doesn't exist, create and persist into Firebase
+  if (!user) {
+    const isEmail = identifier.includes('@');
+    const userHandle = isEmail ? identifier.split('@')[0] : identifier;
     user = {
       id: `user_${Date.now()}`,
-      name: email.split('@')[0].toUpperCase() || "Operations Lead",
-      email: email,
+      username: userHandle,
+      name: userHandle.charAt(0).toUpperCase() + userHandle.slice(1),
+      email: isEmail ? identifier : `${userHandle}@eventtwin.org`,
       password: password,
       role: "Event Organizer",
-      onboarded: false
+      onboarded: false,
+      createdAt: new Date().toISOString()
     };
     await saveUser(user);
+    console.log(`[Firebase Auth] New user registered & saved to Firebase RTDB: ${user.username} (${user.id})`);
   }
 
+  // Check password
   if (user && (user.password === password || password === 'password123' || password.length >= 4)) {
+    // Update lastLogin in Firebase
+    await updateUser(user.id, { lastLogin: new Date().toISOString() });
+    
     return res.json({
       success: true,
       user: {
         id: user.id,
+        username: user.username || user.email.split('@')[0],
         name: user.name,
         email: user.email,
         role: user.role,
         onboarded: user.onboarded
       },
-      token: `gp_token_${user.id}`
+      token: `gp_token_${user.id}`,
+      storage: 'Firebase Realtime Database (eventtwin-36665-default-rtdb)'
     });
   }
 
-  return res.status(401).json({ error: "Invalid credentials." });
+  return res.status(401).json({ error: "Invalid credentials. Please check your username and password." });
 });
 
 app.post('/api/auth/signup', async (req, res) => {
-  const { fullName, email, password, role } = req.body;
-  if (!fullName || !email || !password) {
-    return res.status(400).json({ error: "All fields are required." });
+  const { fullName, username, email, password, role } = req.body;
+  if (!fullName || (!email && !username) || !password) {
+    return res.status(400).json({ error: "Full Name, Username/Email, and password are required." });
   }
 
+  const cleanEmail = email ? email.trim().toLowerCase() : `${username.trim().toLowerCase()}@eventtwin.org`;
+  const cleanUsername = username ? username.trim().toLowerCase() : (fullName.toLowerCase().replace(/\s+/g, '_'));
+
   const allUsers = await getUsersData();
-  const existing = allUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
+  const existing = allUsers.find(u => 
+    (u.email && u.email.toLowerCase() === cleanEmail) ||
+    (u.username && u.username.toLowerCase() === cleanUsername)
+  );
+
   if (existing) {
-    return res.status(400).json({ error: "Account with this email already exists." });
+    return res.status(400).json({ error: "Account with this username or email already exists in Firebase." });
   }
 
   const newUser = {
     id: `user_${Date.now()}`,
+    username: cleanUsername,
     name: fullName,
-    email: email,
+    email: cleanEmail,
     password: password,
     role: role || "Event Organizer",
-    onboarded: false
+    onboarded: false,
+    createdAt: new Date().toISOString()
   };
+
   await saveUser(newUser);
+  console.log(`[Firebase Auth] Successfully registered and persisted to Firebase RTDB: ${newUser.username} (${newUser.id})`);
 
   res.status(201).json({
     success: true,
     user: {
       id: newUser.id,
+      username: newUser.username,
       name: newUser.name,
       email: newUser.email,
       role: newUser.role,
       onboarded: newUser.onboarded
     },
-    token: `gp_token_${newUser.id}`
+    token: `gp_token_${newUser.id}`,
+    storage: 'Firebase Realtime Database (eventtwin-36665-default-rtdb)'
   });
 });
 
@@ -404,6 +448,71 @@ app.post('/api/digital-twin/run', async (req, res) => {
     event: event,
     status: "SIMULATION RUNNING"
   });
+});
+
+// ==========================================
+// LIVE WEATHER API ENDPOINTS
+// ==========================================
+
+// 14. GET /api/weather (Live weather from Open-Meteo for BKC)
+app.get('/api/weather', async (req, res) => {
+  try {
+    const weather = await fetchLiveWeather();
+    res.json(weather);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch weather data', message: err.message });
+  }
+});
+
+// 15. POST /api/weather/refresh (Force refresh weather cache)
+app.post('/api/weather/refresh', async (req, res) => {
+  invalidateWeatherCache();
+  try {
+    const weather = await fetchLiveWeather();
+    res.json({ success: true, weather });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to refresh weather data', message: err.message });
+  }
+});
+
+// ==========================================
+// SOCIAL SIGNALS API ENDPOINTS
+// ==========================================
+
+// 16. GET /api/social-signals (Weather-driven social intelligence)
+app.get('/api/social-signals', async (req, res) => {
+  try {
+    const signals = await getLiveSocialSignals();
+    res.json(signals);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch social signals', message: err.message });
+  }
+});
+
+// ==========================================
+// NUGEN INTELLIGENCE API ENDPOINTS (TASK 2)
+// ==========================================
+
+// 17. POST /api/nugen/advise (Domain-aligned tactical advice via gpt-oss-120b)
+app.post('/api/nugen/advise', async (req, res) => {
+  try {
+    const payload = req.body || {};
+    const advice = await getNugenTacticalAdvice({
+      scenario: payload.scenario || {},
+      metrics: payload.metrics || memoryCanonicalState?.loads || {},
+      weather: payload.weather || {},
+      query: payload.query || ''
+    });
+    res.json(advice);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to generate Nugen tactical advice', message: err.message });
+  }
+});
+
+// 18. GET /api/nugen/status (Nugen alignment pipeline status & metadata)
+app.get('/api/nugen/status', (req, res) => {
+  const status = getNugenPipelineStatus();
+  res.json(status);
 });
 
 app.listen(PORT, async () => {

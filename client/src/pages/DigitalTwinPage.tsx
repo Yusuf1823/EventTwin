@@ -6,15 +6,23 @@ import {
   Navigation,
   Car,
   Bus,
-  Users,
-  Activity,
   CheckSquare,
   Square,
-  MapPin,
-  CheckCircle2
+  CheckCircle2,
+  Cpu
 } from 'lucide-react';
 import { RealMumbaiMap } from '../components/RealMumbaiMap';
+import { WeatherHUD } from '../components/WeatherHUD';
 import { REAL_MUMBAI_LOCATIONS, LocationItem } from '../data/mumbaiLocations';
+import { GlassCard } from '../ui/GlassCard';
+import { PageHeader } from '../ui/PageHeader';
+import { SectionHeader } from '../ui/SectionHeader';
+import { SegmentedControl } from '../ui/SegmentedControl';
+import { FacilityCard } from '../ui/FacilityCard';
+import { RiskBadge } from '../ui/RiskBadge';
+import { LoadBar } from '../ui/LoadBar';
+import { AnimatedStat } from '../ui/AnimatedStat';
+import { cn } from '../ui/cn';
 
 export const DigitalTwinPage: React.FC = () => {
   const [layers, setLayers] = useState({
@@ -41,11 +49,19 @@ export const DigitalTwinPage: React.FC = () => {
         if (res.ok) {
           const data = await res.json();
           if (data.locations && data.locations.length > 0) {
-            setLocations(data.locations);
-            setSelectedLocation((prev) => {
-              if (!prev) return data.locations[0];
-              return data.locations.find((l: LocationItem) => l.id === prev.id) || data.locations[0];
+            const merged = data.locations.map((loc: any) => {
+              const fallback = REAL_MUMBAI_LOCATIONS.find(r => r.id === loc.id) || REAL_MUMBAI_LOCATIONS[0];
+              return {
+                ...fallback,
+                ...loc,
+                real: { ...fallback.real, ...(loc.real || {}) },
+                simulated: {
+                  ...fallback.simulated,
+                  ...(loc.simulated || {})
+                }
+              };
             });
+            setLocations(merged);
           }
         }
       } catch (err) {
@@ -77,79 +93,60 @@ export const DigitalTwinPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">Digital Twin</h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            A live geospatial model of the Mumbai mega-event ecosystem centered on Jio World Convention Centre.
-          </p>
-        </div>
-
-        {/* View Controls & View Switcher */}
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Current vs Predicted (+30m) Toggle */}
-          <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 text-xs shrink-0">
-            <button
-              onClick={() => setViewMode('CURRENT')}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition cursor-pointer ${
-                viewMode === 'CURRENT'
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              Current
-            </button>
-            <button
-              onClick={() => setViewMode('PREDICTED')}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition cursor-pointer flex items-center gap-1.5 ${
-                viewMode === 'PREDICTED'
-                  ? 'bg-amber-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <span>Predicted (+30m risk)</span>
-              <span className="text-[9px] px-1.5 py-0.5 rounded bg-black/40 text-amber-200 font-mono uppercase">
-                {predictionsSource === 'ml' ? 'ML' : 'SIM'}
-              </span>
-            </button>
+    <div className="flex flex-col gap-6 page-enter">
+      <PageHeader
+        title="Digital Twin"
+        accent={
+          <div className="flex items-center gap-1.5">
+            <Cpu className="w-3.5 h-3.5 text-violet-400" />
+            <span className="text-[10px] font-mono text-violet-400 font-bold uppercase tracking-wider">Geospatial Model · JWCC BKC</span>
           </div>
-
-          {/* View Switcher (Scrollable on small devices) */}
-          <div className="flex items-center overflow-x-auto max-w-full bg-slate-900 border border-slate-800 rounded-xl p-1 text-xs whitespace-nowrap gap-1">
-            {[
-              { id: 'map', label: 'Ecosystem Real Map' },
-              { id: 'venues', label: 'JWCC Venue' },
-              { id: 'hotels', label: `Real Hotels (${locations.filter(l => l.category === 'Hotel').length})` },
-              { id: 'transit', label: 'Transit Network' },
-              { id: 'parking', label: 'Parking Facilities' }
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`px-3 py-1.5 rounded-lg font-semibold transition cursor-pointer shrink-0 ${
-                  activeTab === tab.id
-                    ? 'bg-indigo-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+        }
+        subtitle="Live geospatial model of the Mumbai mega-event ecosystem centered on Jio World Convention Centre."
+        actions={
+          <div className="flex flex-wrap items-center gap-3">
+            <SegmentedControl
+              value={viewMode}
+              onChange={setViewMode}
+              options={[
+                { id: 'CURRENT', label: 'Current' },
+                {
+                  id: 'PREDICTED',
+                  label: (
+                    <span className="flex items-center gap-1.5">
+                      Predicted (+30m)
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-black/40 text-amber-200 font-mono">
+                        {predictionsSource === 'ml' ? 'ML' : 'SIM'}
+                      </span>
+                    </span>
+                  )
+                }
+              ]}
+            />
+            <SegmentedControl
+              value={activeTab}
+              onChange={setActiveTab}
+              options={[
+                { id: 'map', label: 'Ecosystem map' },
+                { id: 'venues', label: 'JWCC venue' },
+                { id: 'hotels', label: `Hotels (${locations.filter((l) => l.category === 'Hotel').length})` },
+                { id: 'transit', label: 'Transit' },
+                { id: 'parking', label: 'Parking' }
+              ]}
+            />
           </div>
-        </div>
-      </div>
+        }
+      />
 
       {activeTab === 'map' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-          {/* Layer Control Card (Col 3) */}
-          <div className="lg:col-span-3 glass-panel p-5 rounded-2xl border border-slate-800 flex flex-col gap-4">
-            <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
-              <Layers className="w-4 h-4 text-cyan-400" />
-              <h2 className="text-xs font-bold text-white uppercase tracking-wider">Map Layer Filters</h2>
-            </div>
-
+          <GlassCard className="lg:col-span-3 flex flex-col gap-4" variant="elevated">
+            <SectionHeader
+              title="Map Layers"
+              subtitle="Toggle visible data overlays"
+              color="cyan"
+              className="border-b border-white/8 pb-3"
+            />
             <div className="flex flex-col gap-2">
               {[
                 { key: 'venues', label: 'Venues (JWCC)', icon: Building, color: 'text-purple-400', count: 1 },
@@ -165,11 +162,12 @@ export const DigitalTwinPage: React.FC = () => {
                     key={item.key}
                     type="button"
                     onClick={() => toggleLayer(item.key as keyof typeof layers)}
-                    className={`flex items-center justify-between p-3 rounded-xl border text-xs cursor-pointer transition text-left ${
+                    className={cn(
+                      'flex items-center justify-between p-3 rounded-xl border text-xs cursor-pointer transition text-left',
                       isChecked
-                        ? 'bg-slate-900 border-indigo-500/40 text-slate-200'
-                        : 'bg-slate-950/40 border-slate-800/80 text-slate-500'
-                    }`}
+                        ? 'bg-cyan-500/8 border-cyan-500/30 text-slate-200'
+                        : 'bg-slate-950/40 border-white/8 text-slate-500'
+                    )}
                   >
                     <div className="flex items-center gap-2.5">
                       <Icon className={`w-4 h-4 ${isChecked ? item.color : 'text-slate-600'}`} />
@@ -179,7 +177,7 @@ export const DigitalTwinPage: React.FC = () => {
                       </div>
                     </div>
                     {isChecked ? (
-                      <CheckSquare className="w-4 h-4 text-indigo-400" />
+                      <CheckSquare className="w-4 h-4 text-cyan-400" />
                     ) : (
                       <Square className="w-4 h-4 text-slate-600" />
                     )}
@@ -187,28 +185,25 @@ export const DigitalTwinPage: React.FC = () => {
                 );
               })}
             </div>
-
-            <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 text-[11px] text-slate-400 leading-relaxed mt-2">
-              <strong className="text-emerald-400">Map Integrity:</strong> Markers render on actual OpenStreetMap vector tiles using real Mumbai coordinates.
+            <div className="p-3 bg-emerald-500/5 rounded-xl border border-emerald-500/20 text-[11px] text-slate-400 leading-relaxed">
+              <strong className="text-emerald-400">Map integrity:</strong> Markers render on actual tiles using real Mumbai coordinates.
             </div>
-          </div>
+          </GlassCard>
 
-          {/* Real Map View (Col 9) */}
-          <div className="lg:col-span-9 glass-panel p-5 rounded-2xl border border-slate-800 flex flex-col gap-3">
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-bold text-white uppercase tracking-wider">
-                Geographic Digital Twin Canvas
-              </span>
-              <span className="font-mono text-cyan-300 text-[11px]">
-                Showing {locations.length} real locations
+          <GlassCard className="lg:col-span-9 flex flex-col gap-3" padded={false}>
+            <div className="flex items-center justify-between px-5 pt-5">
+              <SectionHeader title="Geographic Canvas" subtitle={`${locations.length} verified real Mumbai locations`} color="violet" />
+              <span className="font-mono text-cyan-300 text-[11px] shrink-0">
+                {isLoading ? 'Syncing…' : 'Live'}
               </span>
             </div>
-
             {viewMode === 'PREDICTED' && (
-              <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-200">
+              <div className="mx-5 flex flex-wrap items-center justify-between gap-2 p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-200">
                 <span className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-                  <span><strong>Predicted Mode (+30m Risk):</strong> Facility markers reflect forecasted load and risk bands for 30 minutes ahead.</span>
+                  <span>
+                    <strong>Predicted mode (+30m):</strong> Markers use forecasted load and risk bands.
+                  </span>
                 </span>
                 <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-black/40 text-amber-300 border border-amber-500/30">
                   Source: {predictionsSource === 'ml' ? 'ML Model' : 'Simulation Extrapolation'}
@@ -216,7 +211,8 @@ export const DigitalTwinPage: React.FC = () => {
               </div>
             )}
 
-            <div className="w-full h-[380px] sm:h-[460px] lg:h-[540px]">
+            <div className="w-full h-[380px] sm:h-[460px] lg:h-[540px] relative">
+              <WeatherHUD />
               <RealMumbaiMap
                 locations={locations}
                 selectedLocation={selectedLocation}
@@ -226,178 +222,103 @@ export const DigitalTwinPage: React.FC = () => {
                 predictions={predictions}
               />
             </div>
-          </div>
+          </GlassCard>
         </div>
       )}
 
-      {/* SUB-VIEW: REAL HOTELS (PHASE 3) */}
       {activeTab === 'hotels' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {locations.filter((l) => l.category === 'Hotel').map((hotel) => (
-            <div
-              key={hotel.id}
-              className="glass-panel p-5 rounded-2xl border border-slate-800 flex flex-col justify-between gap-4"
-            >
-              <div>
-                <div className="flex items-center justify-between text-xs mb-2">
-                  <span className="font-bold text-white">{hotel.name}</span>
-                  <span
-                    className={`px-2 py-0.5 rounded font-mono text-[10px] font-bold ${
-                      hotel.simulated.status === 'HIGH'
-                        ? 'bg-amber-500/20 text-amber-300'
-                        : 'bg-emerald-500/20 text-emerald-300'
-                    }`}
-                  >
-                    {hotel.simulated.loadPct}% Occupied
-                  </span>
-                </div>
-
-                <div className="p-2.5 bg-slate-950/70 rounded-xl border border-slate-800 text-[11px] text-slate-300 space-y-1 mb-3">
-                  <div className="text-emerald-400 font-bold flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" /> Real Hotel Record
-                  </div>
-                  <div><strong>Address:</strong> {hotel.real.address}</div>
-                  <div><strong>Capacity:</strong> {hotel.real.publishedCapacity}</div>
-                  <div className="text-slate-500 text-[10px]">Source: {hotel.real.source}</div>
-                </div>
-
-                <div className="text-xs text-slate-300">
-                  Simulated Guests: <strong>{hotel.simulated.currentVisitors} / {hotel.simulated.capacity}</strong>
-                </div>
-              </div>
-
-              <div className="p-2.5 bg-indigo-950/30 rounded-xl border border-indigo-500/30 text-xs text-slate-300 leading-relaxed italic">
-                "{hotel.simulated.aiNote}"
-              </div>
-            </div>
+            <FacilityCard key={hotel.id} location={hotel} />
           ))}
         </div>
       )}
 
-      {/* SUB-VIEW: REAL TRANSIT (PHASE 7) */}
       {activeTab === 'transit' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {locations.filter((l) => l.category === 'Transit').map((stn) => (
-            <div
+            <FacilityCard
               key={stn.id}
-              className="glass-panel p-6 rounded-2xl border border-slate-800 flex flex-col justify-between gap-4"
-            >
-              <div>
-                <div className="flex items-center justify-between text-xs mb-2">
-                  <h3 className="text-base font-bold text-white">{stn.name}</h3>
-                  <span
-                    className={`px-2.5 py-0.5 rounded font-mono text-xs font-bold ${
-                      stn.simulated.status === 'CRITICAL'
-                        ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                        : stn.simulated.status === 'HIGH'
-                        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                        : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                    }`}
-                  >
-                    {stn.simulated.status} ({stn.simulated.loadPct}%)
-                  </span>
+              location={stn}
+              extra={
+                <div className="text-[11px] text-slate-400">
+                  Throughput: <strong className="text-white">{stn.simulated.capacity.toLocaleString()}</strong> pax/hour
                 </div>
-
-                <div className="p-3 bg-slate-950/70 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-1 mb-3">
-                  <div className="text-emerald-400 font-bold flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Verified Mumbai Transit Station
-                  </div>
-                  <div><strong>Address:</strong> {stn.real.address}</div>
-                  <div><strong>Network Spec:</strong> {stn.real.publishedCapacity}</div>
-                  <div><strong>Throughput Capacity:</strong> {stn.simulated.capacity.toLocaleString()} passengers/hour</div>
-                </div>
-              </div>
-
-              <div className="p-3 bg-indigo-950/30 rounded-xl border border-indigo-500/30 text-xs text-slate-200">
-                <strong>AI Transit Suggestion:</strong> {stn.simulated.aiNote}
-              </div>
-            </div>
+              }
+            />
           ))}
         </div>
       )}
 
-      {/* SUB-VIEW: PARKING (PHASE 9) */}
       {activeTab === 'parking' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {locations.filter((l) => l.category === 'Parking').map((prk) => (
-            <div
+            <FacilityCard
               key={prk.id}
-              className={`glass-panel p-5 rounded-2xl border flex flex-col justify-between gap-4 ${
-                prk.real.verified ? 'border-indigo-500/40' : 'border-slate-800'
-              }`}
-            >
-              <div>
-                <div className="flex items-center justify-between text-xs mb-2">
-                  <span className="font-bold text-white text-sm">{prk.name}</span>
-                  <span
-                    className={`px-2 py-0.5 rounded font-mono text-[10px] font-bold ${
-                      prk.simulated.status === 'CRITICAL'
-                        ? 'bg-rose-500/20 text-rose-300'
-                        : prk.simulated.status === 'HIGH'
-                        ? 'bg-amber-500/20 text-amber-300'
-                        : 'bg-emerald-500/20 text-emerald-300'
-                    }`}
-                  >
-                    {prk.simulated.loadPct}% Full
-                  </span>
+              location={prk}
+              extra={
+                <div
+                  className={`text-[10px] font-mono font-bold uppercase ${
+                    prk.real.verified ? 'text-emerald-400' : 'text-cyan-400'
+                  }`}
+                >
+                  {prk.real.verified ? 'Real parking facility' : 'Simulated event parking zone'}
                 </div>
-
-                <div className="p-3 bg-slate-950/70 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-1.5 mb-3">
-                  <div
-                    className={`font-bold text-[11px] ${
-                      prk.real.verified ? 'text-emerald-400' : 'text-cyan-400'
-                    }`}
-                  >
-                    {prk.real.verified ? '✓ REAL PARKING FACILITY' : '⚠ SIMULATED EVENT PARKING ZONE'}
-                  </div>
-                  <div><strong>Location:</strong> {prk.real.address}</div>
-                  <div><strong>Published Spec:</strong> {prk.real.publishedCapacity}</div>
-                  <div>Simulated Cars: <strong>{prk.simulated.currentVisitors.toLocaleString()} / {prk.simulated.capacity.toLocaleString()}</strong></div>
-                </div>
-              </div>
-
-              <div className="p-2.5 bg-slate-950/80 rounded-xl border border-slate-800 text-xs text-slate-300 leading-relaxed">
-                {prk.simulated.aiNote}
-              </div>
-            </div>
+              }
+            />
           ))}
         </div>
       )}
 
-      {/* SUB-VIEW: VENUES (PHASE 2) */}
       {activeTab === 'venues' && (
-        <div className="glass-panel p-6 rounded-2xl border border-purple-500/40 bg-purple-950/10 flex flex-col gap-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <GlassCard className="border-violet-500/30 bg-violet-950/10 flex flex-col gap-4">
+          <div className="flex items-center justify-between border-b border-white/8 pb-3">
             <div>
-              <span className="text-[10px] font-mono text-purple-300 font-bold uppercase tracking-wider">
-                Primary Event Venue • Bandra Kurla Complex
+              <span className="text-[10px] font-mono text-violet-300 font-bold uppercase tracking-wider">
+                Primary event venue · Bandra Kurla Complex
               </span>
-              <h2 className="text-xl font-black text-white mt-1">Jio World Convention Centre (JWCC)</h2>
+              <h2 className="font-display text-xl font-extrabold text-white mt-1">
+                Jio World Convention Centre (JWCC)
+              </h2>
             </div>
-            <span className="px-3 py-1 rounded bg-rose-500/20 text-rose-300 font-mono text-xs font-bold border border-rose-500/40">
-              HIGH PRESSURE (84%)
-            </span>
+            <RiskBadge risk="HIGH">HIGH PRESSURE 84%</RiskBadge>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-slate-950/70 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-2">
-              <div className="text-emerald-400 font-bold flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4" /> Official Real Mumbai Venue Data
+            <div className="p-4 bg-emerald-500/5 rounded-xl border border-emerald-500/20 text-xs text-slate-300 space-y-2">
+              <div className="text-emerald-400 font-bold flex items-center gap-1.5 uppercase tracking-wider text-[10px]">
+                <CheckCircle2 className="w-4 h-4" /> Official real venue data
               </div>
-              <div><strong>Official Address:</strong> Jio World Centre, G Block, Bandra Kurla Complex, Bandra East, Mumbai, Maharashtra 400098, India</div>
-              <div><strong>Geographic Position:</strong> 19.0638° N, 72.8682° E (Verified mapping source)</div>
-              <div><strong>Published Facilities:</strong> World-class convention halls, multi-level exhibition pavilions, and on-premises basement parking for up to 5,000 cars.</div>
+              <div>
+                <strong>Address:</strong> Jio World Centre, G Block, Bandra Kurla Complex, Bandra East, Mumbai,
+                Maharashtra 400098, India
+              </div>
+              <div>
+                <strong>Position:</strong> 19.0638° N, 72.8682° E
+              </div>
+              <div>
+                <strong>Facilities:</strong> Convention halls, exhibition pavilions, basement parking up to 5,000 cars.
+              </div>
             </div>
-
-            <div className="p-4 bg-slate-950/70 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-2">
-              <div className="text-cyan-400 font-bold">Simulated Operational Telemetry</div>
-              <div>Current Attendees in Precinct: <strong>42,000 visitors</strong></div>
-              <div>Capacity Utilization: <strong>84%</strong> (Predicted 118% in 45 mins)</div>
-              <div>Turnstile Entry Rate: <strong>1,400 visitors/minute</strong></div>
+            <div className="p-4 bg-cyan-500/5 rounded-xl border border-cyan-500/20 text-xs text-slate-300 space-y-3">
+              <div className="text-cyan-400 font-bold uppercase tracking-wider text-[10px]">Simulated telemetry</div>
+              <div className="flex items-end justify-between">
+                <span>Attendees in precinct</span>
+                <strong className="text-white text-sm">42,000</strong>
+              </div>
+              <div>
+                <div className="flex justify-between mb-1">
+                  <span>Capacity utilization</span>
+                  <AnimatedStat value={84} suffix="%" className="text-white font-bold" />
+                </div>
+                <LoadBar pct={84} />
+              </div>
+              <div>
+                Turnstile entry: <strong>1,400 visitors/minute</strong>
+              </div>
               <div className="text-rose-400 font-semibold">Overload ETA: 45 minutes without intervention</div>
             </div>
           </div>
-        </div>
+        </GlassCard>
       )}
     </div>
   );

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export interface User {
   id: string;
+  username?: string;
   name: string;
   email: string;
   role: string;
@@ -11,8 +12,8 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (email: string, password?: string) => Promise<boolean>;
-  signup: (fullName: string, email: string, password: string, role: string) => Promise<boolean>;
+  login: (usernameOrEmail: string, password?: string) => Promise<boolean>;
+  signup: (fullName: string, email: string, password: string, role: string, username?: string) => Promise<boolean>;
   logout: () => void;
   completeOnboarding: () => void;
   isLoading: boolean;
@@ -41,12 +42,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password = 'password123'): Promise<boolean> => {
+  const login = async (usernameOrEmail: string, password = 'password123'): Promise<boolean> => {
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ 
+          username: usernameOrEmail, 
+          email: usernameOrEmail, 
+          password 
+        })
       });
       if (res.ok) {
         const data = await res.json();
@@ -61,8 +66,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Fallback local auth
       const mockUser: User = {
         id: 'user_demo',
-        name: email.split('@')[0].toUpperCase() || 'Commander Alex',
-        email: email,
+        username: usernameOrEmail.includes('@') ? usernameOrEmail.split('@')[0] : usernameOrEmail,
+        name: usernameOrEmail.includes('@') ? usernameOrEmail.split('@')[0].toUpperCase() : usernameOrEmail,
+        email: usernameOrEmail.includes('@') ? usernameOrEmail : `${usernameOrEmail}@eventtwin.org`,
         role: 'City Operations',
         onboarded: true
       };
@@ -75,12 +81,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return false;
   };
 
-  const signup = async (fullName: string, email: string, password: string, role: string): Promise<boolean> => {
+  const signup = async (fullName: string, email: string, password: string, role: string, username?: string): Promise<boolean> => {
     try {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullName, email, password, role })
+        body: JSON.stringify({ 
+          fullName, 
+          username: username || fullName.toLowerCase().replace(/\s+/g, '_'),
+          email, 
+          password, 
+          role 
+        })
       });
       if (res.ok) {
         const data = await res.json();
@@ -94,6 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.warn('Backend offline, using fallback signup:', err);
       const mockUser: User = {
         id: `user_${Date.now()}`,
+        username: username || fullName.toLowerCase().replace(/\s+/g, '_'),
         name: fullName,
         email: email,
         role: role,

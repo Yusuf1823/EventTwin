@@ -1,0 +1,129 @@
+================================================================================
+EVENTTWIN DOMAIN KNOWLEDGE CORPUS: URBAN MEGA-EVENT INCIDENT COMMAND,
+GEOSPATIAL DIGITAL TWIN DYNAMICS, WEATHER DISRUPTIONS & HOSPITALITY REBALANCING
+================================================================================
+
+1. DOMAIN OPERATIONAL CONTEXT & OBJECTIVE
+--------------------------------------------------------------------------------
+EventTwin is an operational geospatial digital twin and predictive incident command 
+system designed for metropolitan mega-events (500,000+ attendees) centered at the 
+Jio World Convention Centre (JWCC) in Bandra Kurla Complex (BKC), Mumbai, Maharashtra, 
+India.
+
+The operational objective of the domain-aligned artificial intelligence is:
+1. Continuous spatial state estimation across interconnected transit, venue, parking, 
+   and hospitality nodes.
+2. Predictive bottleneck identification 15 to 45 minutes before safety thresholds are breached.
+3. Modeling non-linear cascade ripple effects caused by severe Mumbai monsoon downpours, 
+   tidal waterlogging, transit chokepoints, and gate delays.
+4. Prescribing strict-conservation spatial rebalancing interventions that relieve critical 
+   stress in Zone A (Core Event Precinct) by transferring demand to surplus buffers in 
+   Zone C (Kalina Spillover Hub).
+
+2. INFRASTRUCTURE TAXONOMY & VERIFIED MUNICIPAL CAPACITIES
+--------------------------------------------------------------------------------
+Zone A (Core Event Precinct):
+- Jio World Convention Centre (JWCC):
+  * Coordinates: 19.0638°N, 72.8682°E.
+  * Base Physical Capacity: 50,000 concurrent occupants.
+  * Turnstile Ingress Throughput: 12,000 visitors/hour across Gates 1 through 6.
+  * Overload Threshold: >85% triggers caution; >100% causes lethal crowd crush hazards.
+- JWCC On-Premises Basement Parking (P1-P3):
+  * Verified Capacity: 5,000 light motor vehicles.
+  * Peak Saturation Alert: >85% saturation results in vehicular tailbacks spilling onto Avenue 3.
+- Trident Bandra Kurla:
+  * Coordinates: 19.0671°N, 72.8699°E (0.4 km from JWCC).
+  * Capacity: 436 executive rooms and suites. Baseline occupancy: 90.8%.
+- Sofitel Mumbai BKC:
+  * Coordinates: 19.0655°N, 72.8660°E (0.35 km from JWCC).
+  * Capacity: 302 luxury rooms and suites. Baseline occupancy: 87.7%.
+
+Zone B (BKC Financial & Central Mobility Artery):
+- BKC Metro Station (Mumbai Metro Aqua Line 3):
+  * Coordinates: 19.0620°N, 72.8655°E.
+  * Design Platform Capacity: 28,000 concurrent passengers.
+  * Critical Flow Rule: When platform load exceeds 90%, automated AFC turnstile throttling 
+    must engage to prevent platform edge stampedes.
+- Jio World Garden Underground Parking:
+  * Coordinates: 19.0648°N, 72.8665°E. Capacity: 12,000 vehicles.
+- The Capital Luxury Suites (BKC):
+  * Coordinates: 19.0645°N, 72.8668°E. Capacity: 547 suites.
+- MCA Club Pavilion Suites:
+  * Coordinates: 19.0622°N, 72.8645°E. Capacity: 279 suites.
+
+Zone C (Kalina & Kurla Spillover Buffer Hub):
+- Kalina-BKC Overflow Event Parking Lot:
+  * Coordinates: 19.0695°N, 72.8685°E (0.7 km from JWCC).
+  * Designated Capacity: 15,000 overflow vehicles.
+  * Surplus Buffer Role: Absorbs spillover traffic diverted from Western Express Highway 
+    and Santacruz-Chembur Link Road (SCLR).
+- Kalina-JWCC Dedicated Express Shuttle Hub:
+  * Fleet: 45 high-capacity zero-emission electric buses operating in a dedicated right-of-way 
+    corridor along BKC Avenue.
+  * Base Transit Cycle: 15 minutes round-trip headway.
+- Kurla-BKC Ingress Interchange Station:
+  * Coordinates: 19.0650°N, 72.8750°E. Intermodal suburban railway hub connecting Central Railway.
+  * Flood Hazard Vulnerability: Low-lying subway underpass prone to rapid water accumulation.
+- Lemon Tree Hotel (Kalina-BKC Junction):
+  * Coordinates: 19.0705°N, 72.8665°E. Capacity: 380 rooms.
+- Ibis Mumbai BKC:
+  * Coordinates: 19.0680°N, 72.8670°E. Capacity: 415 rooms.
+
+3. MONSOON WEATHER IMPACT & HOSPITALITY CASCADING RIPPLE LAWS
+--------------------------------------------------------------------------------
+Mumbai experiences extreme precipitation events governed by Indian Meteorological 
+Department (IMD) warning bands:
+- Light Drizzle (<2.5 mm/hr): Negligible road disruption; umbrella handling adds 5% gate dwell.
+- Moderate Rain (2.5 - 7.5 mm/hr): Road traffic slows by 15-25%; shuttle turnaround expands to 18-20m.
+- Heavy Rain (7.5 - 15.0 mm/hr): Road capacity drops by 35-45%; suburban local trains experience delays; 
+  shuttle turnaround stretches to 22-26m.
+- Cloudburst & Torrential Rain (>15.0 mm/hr):
+  * Mithi River Tidal Overflow: Northern BKC drainage boundary experiences tidal backflow.
+  * Kurla Western Underpass waterlogging forces closure of vehicular ingress lanes.
+  * Workforce Absenteeism: Suburban transit waterlogging leads to 15-35% staff delays across hotels and venue gates.
+
+Hospitality Cascading Ripple Effects:
+1. Stranded Delegate Influx: Severe storms strand outdoor attendees; guests immediately seek 
+   emergency shelter at Zone A hotels (Trident, Sofitel), surging occupancy by +15% to +25%, 
+   often reaching 100% capacity.
+2. Peripheral Cancellation: Distant airport and South Mumbai hotels experience 8-15% booking 
+   cancellations due to flooded vehicular arterial corridors.
+3. Food & Beverage Consumption Shift: Outdoor food kiosks and staging stalls suffer 80-95% demand 
+   collapse; indoor restaurants, lounges, and convention concessionaires experience a +35% to +45% 
+   demand wave.
+4. Logistics & Dewatering Deployment: Municipal emergency dewatering pumps (up to 24 units) deploy 
+   at Kurla subway and Kalina swales; emergency rain poncho distribution stock (150,000+ units) 
+   mobilizes at Gate 1-4 concourses.
+
+4. STANDARD OPERATING PROCEDURES (SOP) & SPATIAL CONSERVATION INTERVENTIONS
+--------------------------------------------------------------------------------
+Intervention 1: Dynamic Spatial Crowd Rebalancing (Zone A to Zone C)
+- Condition: Zone A visitor density exceeds 90% while Zone C retains surplus capacity (>40% buffer).
+- Protocol: Divert 15% of inbound attendees arriving via SCLR and BKC Connector toward Zone C Kalina 
+  Concourse with digital wayfinding and voucher incentives.
+- Mathematical Law: Total visitors is strictly conserved:
+  Total_Simulated_Visitors = Zone_A_Visitors + Zone_B_Visitors + Zone_C_Visitors.
+
+Intervention 2: Parking Flow Redistribution
+- Condition: JWCC On-Premises lot reaches >85% capacity.
+- Protocol: Divert 22% of inbound vehicular traffic to Kalina Overflow Lot (15,000 capacity).
+- Mathematical Law: Total vehicles parked is strictly conserved.
+
+Intervention 3: Shuttle Transit Surge Boosting
+- Condition: Road congestion slows shuttle headway >20 minutes.
+- Protocol: Reroute 12 reserve shuttles via Kalina-Kurla dedicated bypass lanes, increasing effective 
+  fleet throughput by 45%.
+
+Intervention 4: Gate Entry Staggering & Surge Dampening
+- Condition: Turnstile arrival wave exceeds 110% of instantaneous throughput.
+- Protocol: Issue dynamic time-staggered digital vouchers with 15-minute ingress windows, reducing 
+  peak arrival concentration by 22%.
+
+5. EVENTTWIN STRESS INDEX FORMULA
+--------------------------------------------------------------------------------
+System-wide City Stress Index (0-100) is calculated as:
+StressIndex = (MobilityStress * 0.30) + (VenueStress * 0.25) + (ParkingStress * 0.20) + 
+              (HotelStress * 0.15) + (DemandImbalance * 0.10)
+Where each component is normalized to [0, 100]. An optimal operational state maintains 
+StressIndex below 70%. Above 85% represents high strain, and above 95% represents a critical emergency.
+================================================================================

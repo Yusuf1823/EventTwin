@@ -47,6 +47,23 @@ export const RealMumbaiMap: React.FC<RealMumbaiMapProps> = ({
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markersRef = useRef<maplibregl.Marker[]>([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showWeatherOverlay, setShowWeatherOverlay] = useState(true);
+
+  const toggleWeatherOverlay = useCallback(() => {
+    setShowWeatherOverlay(prev => {
+      const next = !prev;
+      if (mapRef.current) {
+        const vis = next ? 'visible' : 'none';
+        if (mapRef.current.getLayer('flood-zones-fill')) {
+          mapRef.current.setLayoutProperty('flood-zones-fill', 'visibility', vis);
+        }
+        if (mapRef.current.getLayer('flood-zones-line')) {
+          mapRef.current.setLayoutProperty('flood-zones-line', 'visibility', vis);
+        }
+      }
+      return next;
+    });
+  }, []);
 
   const toggleFullscreen = useCallback(() => {
     if (!wrapperRef.current) return;
@@ -216,6 +233,108 @@ export const RealMumbaiMap: React.FC<RealMumbaiMapProps> = ({
           'line-color': ['get', 'color'],
           'line-width': 3,
           'line-opacity': 0.85
+        }
+      });
+
+      // Add Weather & Flood Vulnerability Geospatial Polygons
+      map.addSource('flood-zones', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: [
+            // Mithi River Tidal Overflow Basin (Northern BKC Edge)
+            {
+              type: 'Feature',
+              properties: {
+                name: 'Mithi River Drainage & Tidal Spillway',
+                severity: 'CRITICAL HAZARD',
+                color: '#06b6d4',
+                opacity: 0.22
+              },
+              geometry: {
+                type: 'Polygon',
+                coordinates: [[
+                  [72.8600, 19.0680],
+                  [72.8645, 19.0715],
+                  [72.8710, 19.0735],
+                  [72.8760, 19.0720],
+                  [72.8740, 19.0695],
+                  [72.8680, 19.0675],
+                  [72.8620, 19.0665],
+                  [72.8600, 19.0680]
+                ]]
+              }
+            },
+            // Kurla-BKC Low-Lying Ingress Chokepoint (Known Waterlogging Hotspot)
+            {
+              type: 'Feature',
+              properties: {
+                name: 'Kurla West Railway Underpass Choke',
+                severity: 'HIGH VULNERABILITY',
+                color: '#3b82f6',
+                opacity: 0.26
+              },
+              geometry: {
+                type: 'Polygon',
+                coordinates: [[
+                  [72.8715, 19.0650],
+                  [72.8770, 19.0675],
+                  [72.8785, 19.0640],
+                  [72.8735, 19.0620],
+                  [72.8715, 19.0650]
+                ]]
+              }
+            },
+            // Kalina CST Road Runoff Swale
+            {
+              type: 'Feature',
+              properties: {
+                name: 'Kalina CST Road Staging Drainage Corridor',
+                severity: 'MODERATE RUNOFF',
+                color: '#6366f1',
+                opacity: 0.18
+              },
+              geometry: {
+                type: 'Polygon',
+                coordinates: [[
+                  [72.8665, 19.0690],
+                  [72.8710, 19.0705],
+                  [72.8700, 19.0680],
+                  [72.8665, 19.0690]
+                ]]
+              }
+            }
+          ]
+        }
+      });
+
+      // Shaded fill for flood polygons
+      map.addLayer({
+        id: 'flood-zones-fill',
+        type: 'fill',
+        source: 'flood-zones',
+        layout: {
+          visibility: 'visible'
+        },
+        paint: {
+          'fill-color': ['get', 'color'],
+          'fill-opacity': ['get', 'opacity']
+        }
+      });
+
+      // Glowing dashed stroke for flood zones
+      map.addLayer({
+        id: 'flood-zones-line',
+        type: 'line',
+        source: 'flood-zones',
+        layout: {
+          visibility: 'visible'
+        },
+        paint: {
+          'line-color': ['get', 'color'],
+          'line-width': 2,
+          'line-dasharray': [3, 2],
+          'line-opacity': 0.8
         }
       });
     });
@@ -411,28 +530,46 @@ export const RealMumbaiMap: React.FC<RealMumbaiMapProps> = ({
         )}
       </div>
 
-      {/* Fullscreen Toggle Button */}
-      <button
-        onClick={toggleFullscreen}
-        title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
-        className="absolute bottom-4 right-4 z-20 flex items-center justify-center w-10 h-10 rounded-xl bg-slate-950/90 backdrop-blur-md border border-slate-700 hover:border-purple-500/60 hover:bg-slate-900 text-slate-300 hover:text-white transition-all duration-200 shadow-lg hover:shadow-purple-500/20 cursor-pointer group"
-      >
-        {isFullscreen ? (
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform">
-            <polyline points="4 14 10 14 10 20" />
-            <polyline points="20 10 14 10 14 4" />
-            <line x1="14" y1="10" x2="21" y2="3" />
-            <line x1="3" y1="21" x2="10" y2="14" />
-          </svg>
-        ) : (
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform">
-            <polyline points="15 3 21 3 21 9" />
-            <polyline points="9 21 3 21 3 15" />
-            <line x1="21" y1="3" x2="14" y2="10" />
-            <line x1="3" y1="21" x2="10" y2="14" />
-          </svg>
-        )}
-      </button>
+      {/* Map Action Buttons (Bottom Right) */}
+      <div className="absolute bottom-4 right-4 z-20 flex items-center gap-2">
+        {/* Weather & Flood Hazard Overlay Toggle */}
+        <button
+          onClick={toggleWeatherOverlay}
+          title={showWeatherOverlay ? 'Hide Flood & Weather Zones' : 'Show Flood & Weather Zones'}
+          className={`flex items-center gap-1.5 px-3 h-10 rounded-xl backdrop-blur-md border text-xs font-bold transition-all duration-200 shadow-lg cursor-pointer ${
+            showWeatherOverlay
+              ? 'bg-cyan-950/90 border-cyan-400/60 text-cyan-200 shadow-cyan-900/40 ring-1 ring-cyan-500/30'
+              : 'bg-slate-950/90 border-slate-700 text-slate-400 hover:text-white hover:bg-slate-900'
+          }`}
+        >
+          <span className="text-sm">🌊</span>
+          <span className="hidden sm:inline">Flood Vulnerability Layer</span>
+          <span className={`w-2 h-2 rounded-full ${showWeatherOverlay ? 'bg-cyan-400 animate-pulse' : 'bg-slate-600'}`} />
+        </button>
+
+        {/* Fullscreen Toggle Button */}
+        <button
+          onClick={toggleFullscreen}
+          title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+          className="flex items-center justify-center w-10 h-10 rounded-xl bg-slate-950/90 backdrop-blur-md border border-slate-700 hover:border-purple-500/60 hover:bg-slate-900 text-slate-300 hover:text-white transition-all duration-200 shadow-lg hover:shadow-purple-500/20 cursor-pointer group"
+        >
+          {isFullscreen ? (
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform">
+              <polyline points="4 14 10 14 10 20" />
+              <polyline points="20 10 14 10 14 4" />
+              <line x1="14" y1="10" x2="21" y2="3" />
+              <line x1="3" y1="21" x2="10" y2="14" />
+            </svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform">
+              <polyline points="15 3 21 3 21 9" />
+              <polyline points="9 21 3 21 3 15" />
+              <line x1="21" y1="3" x2="14" y2="10" />
+              <line x1="3" y1="21" x2="10" y2="14" />
+            </svg>
+          )}
+        </button>
+      </div>
     </div>
   );
 };

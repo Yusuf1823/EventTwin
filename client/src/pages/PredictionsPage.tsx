@@ -29,6 +29,13 @@ import {
   Legend
 } from 'recharts';
 import confetti from 'canvas-confetti';
+import { GlassCard } from '../ui/GlassCard';
+import { PageHeader } from '../ui/PageHeader';
+import { SectionHeader } from '../ui/SectionHeader';
+import { RiskBadge } from '../ui/RiskBadge';
+import { ChartTooltip } from '../ui/ChartTooltip';
+import { AnimatedStat } from '../ui/AnimatedStat';
+import { LoadBar } from '../ui/LoadBar';
 
 interface ResourceForecast {
   resource: string;
@@ -269,18 +276,20 @@ export const PredictionsPage: React.FC = () => {
   const zoneAAfterLoad = simResult ? (simResult.after.zoneALoad || simResult.after.venueLoad) : 88;
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Top Header & Truthful Attribution */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
-            <TrendingUp className="w-6 h-6 text-indigo-400" />
-            Predictive Forecasting Engine
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Dynamic forward-looking extrapolation projecting bottlenecks and available capacity across urban infrastructure.
-          </p>
-        </div>
+    <div className="flex flex-col gap-6 page-enter">
+      <PageHeader
+        title="Predictive Forecasting"
+        accent={
+          <div className="flex items-center gap-1.5">
+            <TrendingUp className="w-3.5 h-3.5 text-sky-400" />
+            <span className="text-[10px] font-mono text-sky-400 font-bold uppercase tracking-wider">Multi-Horizon Engine · NOW +15m +30m +45m</span>
+          </div>
+        }
+        subtitle="Forward-looking load across NOW, +15m, +30m, and +45m horizons."
+        actions={null}
+      />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 -mt-2">
+        <div className="hidden" />
 
         {/* Source Badge & Truthful Model Metrics Status */}
         <div className="flex flex-wrap items-center gap-2">
@@ -390,18 +399,18 @@ export const PredictionsPage: React.FC = () => {
 
 
       {/* Explanation Panel */}
-      <div className="glass-panel p-5 rounded-2xl border border-slate-800 bg-slate-950/40 flex flex-col gap-3.5">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-indigo-300 flex items-center gap-1.5 uppercase tracking-wider font-mono">
-            <Info className="w-4 h-4 text-indigo-400" />
-            Causal Ripple Explanation & Key Drivers
-          </span>
-          {isScenarioActive && (
-            <span className="text-[10px] font-mono text-amber-400 px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/30">
-              Custom Scenario Active
-            </span>
-          )}
-        </div>
+      <GlassCard className="flex flex-col gap-3.5" variant="ai">
+        <SectionHeader
+          title="Causal Ripple Explanation & Key Drivers"
+          color="cyan"
+          right={
+            isScenarioActive ? (
+              <span className="text-[10px] font-mono text-amber-400 px-2 py-1 rounded bg-amber-500/10 border border-amber-500/30">
+                Custom Scenario Active
+              </span>
+            ) : undefined
+          }
+        />
 
         {/* Narrative Text */}
         <p className="text-sm text-slate-200 leading-relaxed font-medium">
@@ -423,7 +432,7 @@ export const PredictionsPage: React.FC = () => {
             ))}
           </div>
         )}
-      </div>
+      </GlassCard>
 
       {/* Interactive Scenario Controls (What-If Controls) */}
       <div className="glass-panel rounded-2xl border border-slate-800 overflow-hidden">
@@ -462,7 +471,7 @@ export const PredictionsPage: React.FC = () => {
                   step="5"
                   value={visitorIncreasePct}
                   onChange={(e) => setVisitorIncreasePct(Number(e.target.value))}
-                  className="w-full accent-cyan-500 cursor-pointer"
+                  className="et-range"
                 />
               </div>
 
@@ -481,7 +490,7 @@ export const PredictionsPage: React.FC = () => {
                   step="5"
                   value={rainImpactPct}
                   onChange={(e) => setRainImpactPct(Number(e.target.value))}
-                  className="w-full accent-blue-500 cursor-pointer"
+                  className="et-range"
                 />
               </div>
 
@@ -500,7 +509,7 @@ export const PredictionsPage: React.FC = () => {
                   step="5"
                   value={transitReductionPct}
                   onChange={(e) => setTransitReductionPct(Number(e.target.value))}
-                  className="w-full accent-amber-500 cursor-pointer"
+                  className="et-range"
                 />
               </div>
 
@@ -519,7 +528,7 @@ export const PredictionsPage: React.FC = () => {
                   step="5"
                   value={parkingReductionPct}
                   onChange={(e) => setParkingReductionPct(Number(e.target.value))}
-                  className="w-full accent-rose-500 cursor-pointer"
+                  className="et-range"
                 />
               </div>
 
@@ -538,7 +547,7 @@ export const PredictionsPage: React.FC = () => {
                   step="2"
                   value={venueDelayMinutes}
                   onChange={(e) => setVenueDelayMinutes(Number(e.target.value))}
-                  className="w-full accent-purple-500 cursor-pointer"
+                  className="et-range"
                 />
               </div>
 
@@ -555,7 +564,7 @@ export const PredictionsPage: React.FC = () => {
                   step="5"
                   value={entrySurgePct}
                   onChange={(e) => setEntrySurgePct(Number(e.target.value))}
-                  className="w-full accent-emerald-500 cursor-pointer"
+                  className="et-range"
                 />
               </div>
             </div>
@@ -583,93 +592,56 @@ export const PredictionsPage: React.FC = () => {
         )}
       </div>
 
-      {/* Resource Forecast Table (NOW / +15 / +30 / +45) */}
-      <div className="glass-panel rounded-2xl border border-slate-800 overflow-hidden">
-        <div className="p-4.5 bg-slate-950/70 border-b border-slate-800 flex items-center justify-between">
+      <GlassCard padded={false} className="overflow-hidden">
+        <div className="p-5 border-b border-white/8 flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-bold text-white tracking-tight">Infrastructure Multi-Horizon Capacity Matrix</h2>
-            <p className="text-[11px] text-slate-400 mt-0.5">Continuous projected load tracking across critical municipal assets</p>
+            <h2 className="font-display text-sm font-bold text-white">Multi-horizon capacity timeline</h2>
+            <p className="text-[11px] text-slate-400 mt-0.5">NOW → +15m → +30m → +45m against 100% design capacity</p>
           </div>
-          <span className="text-xs font-mono text-slate-400 hidden sm:inline">Reference Threshold: 100% Load</span>
+          <span className="text-xs font-mono text-slate-400 hidden sm:inline">Threshold 100%</span>
         </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-900/80 text-[11px] font-mono text-slate-400 uppercase tracking-wider border-b border-slate-800">
-              <tr>
-                <th className="py-3 px-4">Resource / Asset</th>
-                <th className="py-3 px-3">Category</th>
-                <th className="py-3 px-4">NOW</th>
-                <th className="py-3 px-4">+15 MIN</th>
-                <th className="py-3 px-4">+30 MIN</th>
-                <th className="py-3 px-4">+45 MIN</th>
-                <th className="py-3 px-4 text-right">TimeTo100%</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/60 font-medium">
-              {resources.map((r, i) => (
-                <tr key={i} className="hover:bg-slate-900/40 transition">
-                  <td className="py-3.5 px-4 font-bold text-white flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${r.currentLoad >= 100 ? 'bg-rose-500' : r.currentLoad >= 85 ? 'bg-amber-400' : 'bg-emerald-400'}`} />
-                    {r.resource}
-                  </td>
-                  <td className="py-3.5 px-3">
-                    <span className="text-[10px] font-mono text-slate-400 px-2 py-0.5 rounded bg-slate-800/80">
-                      {r.category}
+        <div className="flex flex-col gap-3 p-4">
+          {resources.map((r, i) => {
+            const steps = [
+              { label: 'NOW', load: r.currentLoad, risk: r.currentRisk },
+              { label: '+15m', load: r.forecasts['15min'], risk: r.riskLabels['15min'] },
+              { label: '+30m', load: r.forecasts['30min'], risk: r.riskLabels['30min'] },
+              { label: '+45m', load: r.forecasts['45min'], risk: r.riskLabels['45min'] }
+            ];
+            return (
+              <div key={i} className="rounded-xl border border-white/8 bg-white/[0.02] p-4">
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${r.currentLoad >= 100 ? 'bg-rose-500 et-risk-pulse' : r.currentLoad >= 85 ? 'bg-amber-400' : 'bg-emerald-400'}`} />
+                    <span className="font-display font-bold text-white text-sm">{r.resource}</span>
+                    <span className="text-[10px] font-mono text-slate-400 px-2 py-0.5 rounded bg-white/5">{r.category}</span>
+                  </div>
+                  {r.minutesUntilCritical !== null ? (
+                    <span className="font-mono font-bold text-rose-400 bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 rounded text-[11px]">
+                      {r.minutesUntilCritical === 0 ? 'CRITICAL NOW' : `${r.minutesUntilCritical} mins to 100%`}
                     </span>
-                  </td>
-                  {/* NOW */}
-                  <td className="py-3.5 px-4">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono font-bold text-white">{r.currentLoad}%</span>
-                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded border font-bold ${getBadgeClass(r.currentRisk)}`}>
-                        {r.currentRisk}
-                      </span>
+                  ) : (
+                    <span className="font-mono text-emerald-400 text-xs">Safe horizon</span>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 relative">
+                  {steps.map((s, idx) => (
+                    <div key={s.label} className="relative rounded-lg border border-white/8 bg-[#05080f]/60 p-3">
+                      {idx < steps.length - 1 && (
+                        <span className="hidden md:block absolute top-1/2 -right-2 w-4 h-px bg-gradient-to-r from-cyan-500/50 to-transparent z-10" />
+                      )}
+                      <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500">{s.label}</div>
+                      <AnimatedStat value={s.load} suffix="%" className="text-lg font-bold text-white block mt-0.5" />
+                      <RiskBadge risk={s.risk} className="mt-1" />
+                      <LoadBar pct={s.load} className="mt-2" height="h-1.5" />
                     </div>
-                  </td>
-                  {/* +15 MIN */}
-                  <td className="py-3.5 px-4">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono font-bold text-white">{r.forecasts['15min']}%</span>
-                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded border font-bold ${getBadgeClass(r.riskLabels['15min'])}`}>
-                        {r.riskLabels['15min']}
-                      </span>
-                    </div>
-                  </td>
-                  {/* +30 MIN */}
-                  <td className="py-3.5 px-4">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono font-bold text-white">{r.forecasts['30min']}%</span>
-                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded border font-bold ${getBadgeClass(r.riskLabels['30min'])}`}>
-                        {r.riskLabels['30min']}
-                      </span>
-                    </div>
-                  </td>
-                  {/* +45 MIN */}
-                  <td className="py-3.5 px-4">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono font-bold text-white">{r.forecasts['45min']}%</span>
-                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded border font-bold ${getBadgeClass(r.riskLabels['45min'])}`}>
-                        {r.riskLabels['45min']}
-                      </span>
-                    </div>
-                  </td>
-                  {/* Time to Critical */}
-                  <td className="py-3.5 px-4 text-right">
-                    {r.minutesUntilCritical !== null ? (
-                      <span className="font-mono font-bold text-rose-400 bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 rounded">
-                        {r.minutesUntilCritical === 0 ? 'CRITICAL NOW' : `${r.minutesUntilCritical} mins`}
-                      </span>
-                    ) : (
-                      <span className="font-mono text-emerald-400 text-xs">Safe</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
-      </div>
+      </GlassCard>
 
       {/* Multi-Horizon Trend Chart */}
       <div className="glass-panel p-5 rounded-2xl border border-slate-800 flex flex-col gap-4">
@@ -694,23 +666,15 @@ export const PredictionsPage: React.FC = () => {
               <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
               <XAxis dataKey="horizon" stroke="#94a3b8" tick={{ fill: '#94a3b8', fontSize: 11 }} />
               <YAxis stroke="#94a3b8" tick={{ fill: '#94a3b8', fontSize: 11 }} domain={[0, 'dataMax + 20']} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#0f172a',
-                  borderColor: '#334155',
-                  borderRadius: '12px',
-                  color: '#f8fafc',
-                  fontSize: '12px'
-                }}
-              />
+              <Tooltip content={<ChartTooltip />} />
               <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
               {/* 100% Capacity Reference Line */}
               <ReferenceLine y={100} stroke="#ef4444" strokeDasharray="4 4" label={{ value: '100% Capacity', fill: '#ef4444', fontSize: 10, position: 'top' }} />
 
-              <Line type="monotone" dataKey="Zone A" stroke="#f43f5e" strokeWidth={2.5} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-              <Line type="monotone" dataKey="Transit" stroke="#06b6d4" strokeWidth={2} dot={{ r: 3 }} />
-              <Line type="monotone" dataKey="Parking" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} />
-              <Line type="monotone" dataKey="Zone C" stroke="#10b981" strokeWidth={2} strokeDasharray="3 3" dot={{ r: 3 }} />
+              <Line type="monotone" dataKey="Zone A" stroke="#fb7185" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 6 }} />
+              <Line type="monotone" dataKey="Transit" stroke="#22d3ee" strokeWidth={2} dot={{ r: 3 }} />
+              <Line type="monotone" dataKey="Parking" stroke="#fbbf24" strokeWidth={2} dot={{ r: 3 }} />
+              <Line type="monotone" dataKey="Zone C" stroke="#34d399" strokeWidth={2} strokeDasharray="4 4" dot={{ r: 3 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>

@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Sliders, RefreshCw, ArrowRight, Sparkles, AlertTriangle, CheckCircle2, ShieldCheck, CloudRain, Clock, Bus, Car } from 'lucide-react';
+import { Sliders, RefreshCw, ArrowRight, Sparkles, AlertTriangle, CheckCircle2, ShieldCheck, CloudRain, Clock, Bus, Car, Satellite, Zap } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { NugenCopilot } from '../components/NugenCopilot';
+import { PageHeader } from '../ui/PageHeader';
+import { SectionHeader } from '../ui/SectionHeader';
+import { GlassCard } from '../ui/GlassCard';
+import { AnimatedStat } from '../ui/AnimatedStat';
+import { LoadBar } from '../ui/LoadBar';
+import { RiskBadge } from '../ui/RiskBadge';
 
 interface SimulationState {
   before: {
@@ -32,10 +39,26 @@ interface SimulationState {
   rippleEffects?: {
     rain?: {
       rainfallImpactPct: number;
+      rainfallIntensityMmHr?: number;
+      temperatureC?: number;
+      stormDurationHours?: number;
+      floodingSeverity?: string;
       roadCapacityDropPct: number;
       shuttleTravelTimeMinutes: number;
       arrivalConcentrationSurgePct: number;
       parkingDwellSurgePct: number;
+    };
+    hospitality?: {
+      coreHotelsOccupancyShiftPct: number;
+      distantHotelsOccupancyDropPct: number;
+      strandedTravelersEst: number;
+      restaurantIndoorSurgePct: number;
+      restaurantOutdoorDropPct: number;
+      workforceAvailabilityPct: number;
+      commuterDelayMinutes: number;
+      emergencyPonchosDeployed: number;
+      dewateringPumpsActive: number;
+      generatorReserveKw: number;
     };
     transitSpillover?: {
       transitReductionPct: number;
@@ -46,6 +69,13 @@ interface SimulationState {
       ingressDelayMinutes: number;
       effectiveCapacityPct: number;
     };
+  };
+  probabilisticUncertainty?: {
+    confidenceLevel: number;
+    confidenceInterval: [number, number];
+    standardError: number;
+    riskVariance: string;
+    modelReliability: string;
   };
   explainability: {
     why: string;
@@ -97,11 +127,97 @@ export const SimulatorPage: React.FC = () => {
   const [parkingReductionPct, setParkingReductionPct] = useState(0);
   const [shuttleReductionPct, setShuttleReductionPct] = useState(0);
   const [rainImpactPct, setRainImpactPct] = useState(0);
+  const [rainfallIntensity, setRainfallIntensity] = useState(0); // mm/hr
+  const [stormDuration, setStormDuration] = useState(1);         // hours
+  const [temperature, setTemperature] = useState(30);            // °C
+  const [floodingSeverity, setFloodingSeverity] = useState('NONE');
   const [venueDelayMinutes, setVenueDelayMinutes] = useState(0);
 
   const [isSimulating, setIsSimulating] = useState(false);
   const [isRebalanced, setIsRebalanced] = useState(false);
   const [simData, setSimData] = useState<SimulationState>(DEFAULT_SIM_DATA);
+  const [liveWeatherMode, setLiveWeatherMode] = useState(false);
+  const [liveWeatherData, setLiveWeatherData] = useState<any>(null);
+  const [fetchingWeather, setFetchingWeather] = useState(false);
+
+  // Apply one-click preset scenarios for quick demonstration
+  const applyPreset = (preset: 'monsoon' | 'heatwave' | 'drizzle' | 'baseline') => {
+    setIsRebalanced(false);
+    if (preset === 'monsoon') {
+      setVisitorIncreasePct(30);
+      setRainfallIntensity(40);
+      setRainImpactPct(45);
+      setStormDuration(4);
+      setTemperature(26);
+      setFloodingSeverity('CRITICAL');
+      setTransitReductionPct(30);
+      setShuttleReductionPct(25);
+      setVenueDelayMinutes(30);
+    } else if (preset === 'heatwave') {
+      setVisitorIncreasePct(20);
+      setRainfallIntensity(0);
+      setRainImpactPct(0);
+      setStormDuration(5);
+      setTemperature(42);
+      setFloodingSeverity('NONE');
+      setTransitReductionPct(15);
+      setShuttleReductionPct(10);
+      setVenueDelayMinutes(15);
+    } else if (preset === 'drizzle') {
+      setVisitorIncreasePct(25);
+      setRainfallIntensity(5);
+      setRainImpactPct(15);
+      setStormDuration(2);
+      setTemperature(28);
+      setFloodingSeverity('LOW');
+      setTransitReductionPct(10);
+      setShuttleReductionPct(5);
+      setVenueDelayMinutes(10);
+    } else {
+      setVisitorIncreasePct(20);
+      setRainfallIntensity(0);
+      setRainImpactPct(0);
+      setStormDuration(1);
+      setTemperature(29);
+      setFloodingSeverity('NONE');
+      setTransitReductionPct(0);
+      setShuttleReductionPct(0);
+      setParkingReductionPct(0);
+      setVenueDelayMinutes(0);
+    }
+  };
+
+  // Fetch live weather and auto-fill sliders
+  const syncLiveWeather = async () => {
+    setFetchingWeather(true);
+    try {
+      const res = await fetch('/api/weather');
+      const data = await res.json();
+      setLiveWeatherData(data);
+      if (data.current) {
+        setTemperature(Math.round(data.current.temperature || 30));
+        setRainfallIntensity(Math.round(data.current.rain || data.current.precipitation || 0));
+      }
+      if (data.impact?.simulationParams) {
+        setRainImpactPct(Math.min(50, data.impact.simulationParams.rainImpactPct));
+      }
+      if (data.impact?.waterloggingRisk) {
+        setFloodingSeverity(data.impact.waterloggingRisk);
+      }
+    } catch (err) {
+      console.warn('Failed to fetch live weather for simulator:', err);
+    } finally {
+      setFetchingWeather(false);
+    }
+  };
+
+  useEffect(() => {
+    if (liveWeatherMode) {
+      syncLiveWeather();
+      const interval = setInterval(syncLiveWeather, 5 * 60 * 1000);
+      return () => clearInterval(interval);
+    }
+  }, [liveWeatherMode]);
 
   // Run simulation on server
   const runSimulation = async (rebalanced = false) => {
@@ -117,6 +233,10 @@ export const SimulatorPage: React.FC = () => {
           parkingReductionPct,
           shuttleReductionPct,
           rainImpactPct,
+          rainfallIntensity,
+          temperature,
+          stormDuration,
+          floodingSeverity,
           venueDelayMinutes,
           isRebalanced: rebalanced
         })
@@ -136,6 +256,7 @@ export const SimulatorPage: React.FC = () => {
               parkingLoad: Math.max(0, payload.before.parkingLoad - payload.after.parkingLoad)
             },
             rippleEffects: payload.rippleEffects,
+            probabilisticUncertainty: payload.probabilisticUncertainty,
             explainability: payload.explainability || DEFAULT_SIM_DATA.explainability
           });
         }
@@ -170,25 +291,78 @@ export const SimulatorPage: React.FC = () => {
   const { before, after, explainability, rippleEffects } = simData;
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-black text-white tracking-tight">WHAT-IF SIMULATOR</h1>
-        <p className="text-xs text-slate-400 mt-0.5">What happens if the situation changes?</p>
-      </div>
+    <div className="flex flex-col gap-6 page-enter">
+      <PageHeader
+        title="What-If Simulator"
+        accent={
+          <div className="flex items-center gap-1.5">
+            <Sliders className="w-3.5 h-3.5 text-indigo-400" />
+            <span className="text-[10px] font-mono text-indigo-400 font-bold uppercase tracking-wider">Dynamic Scenario Engine</span>
+          </div>
+        }
+        subtitle="Simulate what happens if conditions change — visitor surge, monsoon, transit failure — and compute prescriptive rebalancing."
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Scenario Controls (Col 5) */}
-        <div className="lg:col-span-5 glass-panel p-6 rounded-2xl border border-slate-800 flex flex-col justify-between gap-5">
+        <GlassCard className="lg:col-span-5 flex flex-col justify-between gap-5" variant="elevated">
           <div>
-            <div className="flex items-center gap-2 mb-4 border-b border-slate-800 pb-3">
-              <Sliders className="w-4 h-4 text-cyan-400" />
-              <h2 className="text-xs font-bold text-white uppercase tracking-wider">SCENARIO CONTROLS</h2>
+            <SectionHeader
+              title="Scenario Controls"
+              subtitle="Adjust variables to simulate forward load shifts"
+              color="violet"
+              className="border-b border-white/8 pb-3 mb-4"
+              right={
+                <span className="text-[10px] font-mono text-violet-400 font-bold bg-violet-950/40 px-2 py-1 rounded border border-violet-500/30">
+                  AI TWIN
+                </span>
+              }
+            />
+
+            {/* 1-Click Preset Demonstrations */}
+            <div className="mb-4 p-3 rounded-xl bg-black/30 border border-white/8">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-2.5 flex items-center gap-1.5">
+                <Zap className="w-3 h-3 text-amber-400" /> Quick-load weather scenarios
+              </span>
+              <div className="grid grid-cols-2 gap-2 text-[11px]">
+                <button
+                  type="button"
+                  onClick={() => applyPreset('monsoon')}
+                  className="p-2.5 rounded-lg bg-rose-950/40 hover:bg-rose-900/50 border border-rose-500/30 text-rose-300 font-bold text-left transition cursor-pointer"
+                >
+                  ⛈️ Monsoon Cloudburst
+                  <span className="block text-[9px] text-slate-400 font-normal">40mm/hr • Flooding Choke</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyPreset('heatwave')}
+                  className="p-2.5 rounded-lg bg-amber-950/40 hover:bg-amber-900/50 border border-amber-500/30 text-amber-300 font-bold text-left transition cursor-pointer"
+                >
+                  🔥 Peak Heatwave
+                  <span className="block text-[9px] text-slate-400 font-normal">42°C • Grid & AC Strain</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyPreset('drizzle')}
+                  className="p-2.5 rounded-lg bg-blue-950/40 hover:bg-blue-900/50 border border-blue-500/30 text-blue-300 font-bold text-left transition cursor-pointer"
+                >
+                  🌧️ Low Drizzle
+                  <span className="block text-[9px] text-slate-400 font-normal">5mm/hr • High Umbrellas</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyPreset('baseline')}
+                  className="p-2.5 rounded-lg bg-emerald-950/40 hover:bg-emerald-900/50 border border-emerald-500/30 text-emerald-300 font-bold text-left transition cursor-pointer"
+                >
+                  ☀️ Clear Optimal
+                  <span className="block text-[9px] text-slate-400 font-normal">29°C • Stable Flows</span>
+                </button>
+              </div>
             </div>
 
             {/* Control 1: Visitor Increase */}
-            <div className="mb-4">
-              <div className="flex items-center justify-between text-xs mb-1.5">
+            <div className="mb-3.5">
+              <div className="flex items-center justify-between text-xs mb-1">
                 <span className="text-slate-300 font-semibold">Visitor Increase (0–100%)</span>
                 <span className="font-mono font-bold text-cyan-300 text-xs">+{visitorIncreasePct}%</span>
               </div>
@@ -202,163 +376,221 @@ export const SimulatorPage: React.FC = () => {
                   setVisitorIncreasePct(parseInt(e.target.value));
                   setIsRebalanced(false);
                 }}
-                className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+                className="et-range"
               />
             </div>
 
-            {/* Control 2: Transit Reduction */}
-            <div className="mb-4">
-              <div className="flex items-center justify-between text-xs mb-1.5">
-                <span className="text-slate-300 font-semibold">Transit Reduction (0–50%)</span>
-                <span className="font-mono font-bold text-amber-300 text-xs">-{transitReductionPct}%</span>
+            {/* Live Weather Mode Toggle */}
+            <div className="mb-3.5 p-2.5 rounded-xl bg-slate-800/50 border border-slate-700/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Satellite className="w-4 h-4 text-cyan-400" />
+                  <span className="text-xs font-bold text-white">LIVE OPEN-METEO SYNC</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setLiveWeatherMode(!liveWeatherMode)}
+                  className={`relative w-10 h-5 rounded-full transition-all cursor-pointer ${
+                    liveWeatherMode ? 'bg-cyan-500' : 'bg-slate-700'
+                  }`}
+                >
+                  <span
+                    className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all"
+                    style={{ left: liveWeatherMode ? '22px' : '2px' }}
+                  />
+                </button>
               </div>
-              <input
-                type="range"
-                min={0}
-                max={50}
-                step={5}
-                value={transitReductionPct}
-                onChange={(e) => {
-                  setTransitReductionPct(parseInt(e.target.value));
-                  setIsRebalanced(false);
-                }}
-                className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-400"
-              />
+              {liveWeatherMode && liveWeatherData && (
+                <div className="mt-2 text-[10px] text-slate-300 flex items-center gap-2 font-mono">
+                  <span className="text-emerald-400">● LIVE</span>
+                  <span>{liveWeatherData.current?.weatherIcon} {liveWeatherData.current?.weatherLabel}</span>
+                  <span>• {temperature}°C</span>
+                  <span>• Rain: {rainfallIntensity}mm/hr</span>
+                </div>
+              )}
+              {liveWeatherMode && fetchingWeather && (
+                <div className="mt-2 text-[10px] text-cyan-400 flex items-center gap-1">
+                  <RefreshCw className="w-3 h-3 animate-spin" />
+                  Syncing with Open-Meteo...
+                </div>
+              )}
             </div>
 
-            {/* Control 3: Parking Reduction */}
-            <div className="mb-4">
-              <div className="flex items-center justify-between text-xs mb-1.5">
-                <span className="text-slate-300 font-semibold">Parking Reduction (0–50%)</span>
-                <span className="font-mono font-bold text-amber-300 text-xs">-{parkingReductionPct}%</span>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={50}
-                step={5}
-                value={parkingReductionPct}
-                onChange={(e) => {
-                  setParkingReductionPct(parseInt(e.target.value));
-                  setIsRebalanced(false);
-                }}
-                className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-400"
-              />
-            </div>
-
-            {/* Control 4: Shuttle Reduction */}
-            <div className="mb-4">
-              <div className="flex items-center justify-between text-xs mb-1.5">
-                <span className="text-slate-300 font-semibold">Shuttle Fleet Reduction (0–50%)</span>
-                <span className="font-mono font-bold text-amber-300 text-xs">-{shuttleReductionPct}%</span>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={50}
-                step={5}
-                value={shuttleReductionPct}
-                onChange={(e) => {
-                  setShuttleReductionPct(parseInt(e.target.value));
-                  setIsRebalanced(false);
-                }}
-                className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-400"
-              />
-            </div>
-
-            {/* Control 5: Rain Impact */}
-            <div className="mb-4">
-              <div className="flex items-center justify-between text-xs mb-1.5">
+            {/* Weather Parameter: Rainfall Intensity */}
+            <div className="mb-3">
+              <div className="flex items-center justify-between text-xs mb-1">
                 <span className="text-slate-300 font-semibold flex items-center gap-1">
-                  <CloudRain className="w-3.5 h-3.5 text-blue-400" /> Rain Impact (0–50%)
+                  <CloudRain className="w-3.5 h-3.5 text-blue-400" /> Rainfall Intensity (0–60 mm/hr)
                 </span>
-                <span className="font-mono font-bold text-blue-300 text-xs">+{rainImpactPct}%</span>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={50}
-                step={5}
-                value={rainImpactPct}
-                onChange={(e) => {
-                  setRainImpactPct(parseInt(e.target.value));
-                  setIsRebalanced(false);
-                }}
-                className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-400"
-              />
-            </div>
-
-            {/* Control 6: Venue Delay */}
-            <div>
-              <div className="flex items-center justify-between text-xs mb-1.5">
-                <span className="text-slate-300 font-semibold flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-purple-400" /> Venue Ingress Delay (0–60m)
-                </span>
-                <span className="font-mono font-bold text-purple-300 text-xs">+{venueDelayMinutes} mins</span>
+                <span className="font-mono font-bold text-blue-300 text-xs">{rainfallIntensity} mm/h</span>
               </div>
               <input
                 type="range"
                 min={0}
                 max={60}
-                step={5}
-                value={venueDelayMinutes}
+                step={2}
+                value={rainfallIntensity}
                 onChange={(e) => {
-                  setVenueDelayMinutes(parseInt(e.target.value));
+                  const val = parseInt(e.target.value);
+                  setRainfallIntensity(val);
+                  setRainImpactPct(Math.min(50, Math.round(val * 1.5)));
+                  if (val > 25) setFloodingSeverity('CRITICAL');
+                  else if (val > 10) setFloodingSeverity('HIGH');
+                  else if (val > 2) setFloodingSeverity('MODERATE');
+                  else setFloodingSeverity('NONE');
                   setIsRebalanced(false);
+                  if (liveWeatherMode) setLiveWeatherMode(false);
                 }}
-                className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-400"
+                className="et-range"
               />
+            </div>
+
+            {/* Weather Parameter: Storm Duration & Temperature in 2 Columns */}
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <div>
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="text-slate-300 font-semibold">Duration (hrs)</span>
+                  <span className="font-mono font-bold text-purple-300 text-xs">{stormDuration}h</span>
+                </div>
+                <input
+                  type="range"
+                  min={1}
+                  max={8}
+                  step={1}
+                  value={stormDuration}
+                  onChange={(e) => {
+                    setStormDuration(parseInt(e.target.value));
+                    setIsRebalanced(false);
+                  }}
+                  className="et-range"
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="text-slate-300 font-semibold">Temp (°C)</span>
+                  <span className={`font-mono font-bold text-xs ${temperature > 38 ? 'text-rose-400' : 'text-amber-300'}`}>
+                    {temperature}°C
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={20}
+                  max={45}
+                  step={1}
+                  value={temperature}
+                  onChange={(e) => {
+                    setTemperature(parseInt(e.target.value));
+                    setIsRebalanced(false);
+                  }}
+                  className="et-range"
+                />
+              </div>
+            </div>
+
+            {/* Transit & Venue Ingress Delays */}
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <div>
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="text-slate-300 font-semibold">Transit Drop</span>
+                  <span className="font-mono font-bold text-amber-300 text-xs">-{transitReductionPct}%</span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={50}
+                  step={5}
+                  value={transitReductionPct}
+                  onChange={(e) => {
+                    setTransitReductionPct(parseInt(e.target.value));
+                    setIsRebalanced(false);
+                  }}
+                  className="et-range"
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="text-slate-300 font-semibold">Gate Delay</span>
+                  <span className="font-mono font-bold text-rose-300 text-xs">+{venueDelayMinutes}m</span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={60}
+                  step={5}
+                  value={venueDelayMinutes}
+                  onChange={(e) => {
+                    setVenueDelayMinutes(parseInt(e.target.value));
+                    setIsRebalanced(false);
+                  }}
+                  className="et-range"
+                />
+              </div>
             </div>
           </div>
 
           <button
+            type="button"
             onClick={handleRunSimulation}
             disabled={isSimulating}
-            className="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-indigo-600/20"
+            className="et-btn et-btn-primary w-full py-3.5"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isSimulating ? 'animate-spin' : ''}`} />
             <span>RUN SIMULATION</span>
           </button>
-        </div>
+        </GlassCard>
 
         {/* Simulation Output & Dynamic Rebalancing (Col 7) */}
-        <div className="lg:col-span-7 glass-panel p-6 rounded-2xl border border-slate-800 flex flex-col justify-between gap-6">
+        <GlassCard className="lg:col-span-7 flex flex-col justify-between gap-5" variant="elevated">
           <div>
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-5">
-              <div>
-                <h2 className="text-xs font-bold text-white uppercase tracking-wider">
-                  BEFORE / AFTER COMPARISON
-                </h2>
-                <p className="text-[11px] text-slate-400">Current State vs Simulated Scenario</p>
-              </div>
-              <span className="px-2.5 py-0.5 rounded-full bg-slate-800 text-cyan-300 font-mono text-[10px] font-bold border border-slate-700">
-                DYNAMIC ENGINE CALCULATION
-              </span>
-            </div>
+            <SectionHeader
+              title="Before / After Comparison"
+              subtitle="Current state vs simulated scenario output"
+              color="cyan"
+              className="border-b border-white/8 pb-3 mb-4"
+              right={
+                <span className="px-2 py-1 rounded-lg bg-cyan-500/10 text-cyan-300 font-mono text-[10px] font-bold border border-cyan-500/25">
+                  DYNAMIC ENGINE
+                </span>
+              }
+            />
 
             {/* Comparison Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
               {/* CURRENT STATE */}
               <div className="p-4 bg-slate-950/80 rounded-xl border border-slate-800 flex flex-col gap-2.5 text-xs">
                 <span className="text-[11px] font-bold font-mono text-slate-400 uppercase tracking-wider">
                   CURRENT STATE
                 </span>
-                <div className="space-y-1.5">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">City Stress:</span>
-                    <strong className="text-rose-400">{before.cityStress}%</strong>
+                <div className="space-y-2.5">
+                  <div>
+                    <div className="flex justify-between text-slate-400">
+                      <span>City Stress</span>
+                      <AnimatedStat value={before.cityStress} suffix="%" className="text-rose-400 font-bold" />
+                    </div>
+                    <LoadBar pct={before.cityStress} className="mt-1" height="h-1.5" />
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Transit Load:</span>
-                    <strong className="text-white">{before.transitLoad}%</strong>
+                  <div>
+                    <div className="flex justify-between text-slate-400">
+                      <span>Transit Load</span>
+                      <AnimatedStat value={before.transitLoad} suffix="%" className="text-white font-bold" />
+                    </div>
+                    <LoadBar pct={before.transitLoad} className="mt-1" height="h-1.5" />
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Parking Load:</span>
-                    <strong className="text-white">{before.parkingLoad}%</strong>
+                  <div>
+                    <div className="flex justify-between text-slate-400">
+                      <span>Parking Load</span>
+                      <AnimatedStat value={before.parkingLoad} suffix="%" className="text-white font-bold" />
+                    </div>
+                    <LoadBar pct={before.parkingLoad} className="mt-1" height="h-1.5" />
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Venue Load:</span>
-                    <strong className="text-white">{before.venueLoad}%</strong>
+                  <div>
+                    <div className="flex justify-between text-slate-400">
+                      <span>Venue Load</span>
+                      <AnimatedStat value={before.venueLoad} suffix="%" className="text-white font-bold" />
+                    </div>
+                    <LoadBar pct={before.venueLoad} className="mt-1" height="h-1.5" />
                   </div>
                 </div>
               </div>
@@ -388,54 +620,120 @@ export const SimulatorPage: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="space-y-1.5">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">City Stress:</span>
-                    <strong
-                      className={`text-sm font-black ${
-                        isRebalanced ? 'text-emerald-400' : 'text-rose-400'
-                      }`}
-                    >
-                      {after.cityStress}%
-                    </strong>
+                <div className="space-y-2.5">
+                  <div>
+                    <div className="flex justify-between text-slate-400">
+                      <span>City Stress</span>
+                      <AnimatedStat
+                        value={after.cityStress}
+                        suffix="%"
+                        className={`text-sm font-black ${isRebalanced ? 'text-emerald-400' : 'text-rose-400'}`}
+                      />
+                    </div>
+                    <LoadBar pct={after.cityStress} className="mt-1" height="h-1.5" />
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Transit Load:</span>
-                    <strong className={after.transitLoad > 100 ? 'text-rose-400' : 'text-emerald-400'}>
-                      {after.transitLoad}%
-                    </strong>
+                  <div>
+                    <div className="flex justify-between text-slate-400">
+                      <span>Transit Load</span>
+                      <AnimatedStat
+                        value={after.transitLoad}
+                        suffix="%"
+                        className={after.transitLoad > 100 ? 'text-rose-400 font-bold' : 'text-emerald-400 font-bold'}
+                      />
+                    </div>
+                    <LoadBar pct={after.transitLoad} className="mt-1" height="h-1.5" />
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Parking Load:</span>
-                    <strong className={after.parkingLoad > 90 ? 'text-rose-400' : 'text-emerald-400'}>
-                      {after.parkingLoad}%
-                    </strong>
+                  <div>
+                    <div className="flex justify-between text-slate-400">
+                      <span>Parking Load</span>
+                      <AnimatedStat
+                        value={after.parkingLoad}
+                        suffix="%"
+                        className={after.parkingLoad > 90 ? 'text-rose-400 font-bold' : 'text-emerald-400 font-bold'}
+                      />
+                    </div>
+                    <LoadBar pct={after.parkingLoad} className="mt-1" height="h-1.5" />
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Venue Load:</span>
-                    <strong className={after.venueLoad > 100 ? 'text-rose-400' : 'text-emerald-400'}>
-                      {after.venueLoad}%
-                    </strong>
+                  <div>
+                    <div className="flex justify-between text-slate-400">
+                      <span>Venue Load</span>
+                      <AnimatedStat
+                        value={after.venueLoad}
+                        suffix="%"
+                        className={after.venueLoad > 100 ? 'text-rose-400 font-bold' : 'text-emerald-400 font-bold'}
+                      />
+                    </div>
+                    <LoadBar pct={after.venueLoad} className="mt-1" height="h-1.5" />
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Ripple Effects Chain (when rain or transit or delay active) */}
-            {rippleEffects && (rainImpactPct > 0 || transitReductionPct > 0 || venueDelayMinutes > 0) && (
-              <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 text-[11px] mb-3 space-y-1">
-                <span className="text-amber-400 font-bold block">OBSERVED RIPPLE EFFECTS:</span>
-                <div className="text-slate-300 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[10.5px]">
-                  {rainImpactPct > 0 && (
-                    <span>• Road Capacity: -{rippleEffects.rain?.roadCapacityDropPct}% (Shuttle: {rippleEffects.rain?.shuttleTravelTimeMinutes}m)</span>
-                  )}
-                  {transitReductionPct > 0 && (
-                    <span>• Road Spillover: +{rippleEffects.transitSpillover?.spilloverToRoadPct}%</span>
-                  )}
-                  {venueDelayMinutes > 0 && (
-                    <span>• Turnstile Throughput: -{100 - (rippleEffects.venueGate?.effectiveCapacityPct || 100)}%</span>
-                  )}
+            {/* CASCADING HOSPITALITY & TRAVEL IMPACT (Midnight Task Requirement) */}
+            {rippleEffects?.hospitality && (
+              <div className="p-3.5 bg-gradient-to-br from-indigo-950/40 via-slate-900/70 to-purple-950/40 rounded-xl border border-indigo-500/40 text-xs mb-3 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-cyan-300 flex items-center gap-1.5 uppercase tracking-wider">
+                    🏨 HOSPITALITY & TRAVEL CASCADING IMPACT
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-mono">
+                    Cascading Ripple
+                  </span>
                 </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px]">
+                  <div className="p-2 bg-slate-950/80 rounded-lg border border-slate-800">
+                    <span className="text-slate-400 text-[10px] block">Zone A Hotel Surge:</span>
+                    <strong className="text-amber-400 font-bold text-xs">+{rippleEffects.hospitality.coreHotelsOccupancyShiftPct}%</strong>
+                    <span className="text-[9px] text-slate-500 block">Stranded guests shelter</span>
+                  </div>
+                  <div className="p-2 bg-slate-950/80 rounded-lg border border-slate-800">
+                    <span className="text-slate-400 text-[10px] block">Stranded Delegates:</span>
+                    <strong className="text-rose-400 font-bold text-xs">{rippleEffects.hospitality.strandedTravelersEst.toLocaleString()}</strong>
+                    <span className="text-[9px] text-slate-500 block">Seeking emergency rooms</span>
+                  </div>
+                  <div className="p-2 bg-slate-950/80 rounded-lg border border-slate-800">
+                    <span className="text-slate-400 text-[10px] block">Indoor Dining:</span>
+                    <strong className="text-emerald-400 font-bold text-xs">+{rippleEffects.hospitality.restaurantIndoorSurgePct}%</strong>
+                    <span className="text-[9px] text-slate-500 block">Outdoor stalls: -{rippleEffects.hospitality.restaurantOutdoorDropPct}%</span>
+                  </div>
+                  <div className="p-2 bg-slate-950/80 rounded-lg border border-slate-800">
+                    <span className="text-slate-400 text-[10px] block">Workforce Availability:</span>
+                    <strong className={rippleEffects.hospitality.workforceAvailabilityPct < 70 ? 'text-rose-400' : 'text-slate-200'}>
+                      {rippleEffects.hospitality.workforceAvailabilityPct}%
+                    </strong>
+                    <span className="text-[9px] text-slate-500 block">Commuter delay: +{rippleEffects.hospitality.commuterDelayMinutes}m</span>
+                  </div>
+                  <div className="p-2 bg-slate-950/80 rounded-lg border border-slate-800">
+                    <span className="text-slate-400 text-[10px] block">Dewatering Pumps:</span>
+                    <strong className="text-cyan-400 font-bold text-xs">{rippleEffects.hospitality.dewateringPumpsActive} Active</strong>
+                    <span className="text-[9px] text-slate-500 block">Low-lying Kurla swale</span>
+                  </div>
+                  <div className="p-2 bg-slate-950/80 rounded-lg border border-slate-800">
+                    <span className="text-slate-400 text-[10px] block">Ponchos Deployed:</span>
+                    <strong className="text-purple-300 font-bold text-xs">{rippleEffects.hospitality.emergencyPonchosDeployed.toLocaleString()}</strong>
+                    <span className="text-[9px] text-slate-500 block">Gate shelter stock</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Probabilistic AI Uncertainty (Midnight Task Requirement) */}
+            {simData.probabilisticUncertainty && (
+              <div className="p-2.5 bg-slate-950/80 rounded-xl border border-slate-800/80 text-[11px] mb-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <div>
+                    <span className="text-slate-300 font-bold">Probabilistic 95% Confidence Interval:</span>
+                    <span className="text-cyan-300 font-mono ml-2 font-bold">
+                      [{simData.probabilisticUncertainty.confidenceInterval[0]}% – {simData.probabilisticUncertainty.confidenceInterval[1]}%]
+                    </span>
+                    <span className="text-[10px] text-slate-400 ml-2">
+                      (SE: ±{simData.probabilisticUncertainty.standardError}%, {simData.probabilisticUncertainty.riskVariance})
+                    </span>
+                  </div>
+                </div>
+                <span className="text-[10px] text-slate-400 font-mono">{simData.probabilisticUncertainty.modelReliability}</span>
               </div>
             )}
 
@@ -475,6 +773,7 @@ export const SimulatorPage: React.FC = () => {
             </div>
 
             <button
+              type="button"
               onClick={handleSimulateRebalancing}
               disabled={isSimulating}
               className={`w-full py-3.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-lg disabled:opacity-60 ${
@@ -493,8 +792,32 @@ export const SimulatorPage: React.FC = () => {
               </span>
             </button>
           </div>
-        </div>
+        </GlassCard>
       </div>
+
+      {/* NUGEN INTELLIGENCE COPILOT (TASK 2 MANDATORY TECHNOLOGY) */}
+      <NugenCopilot
+        currentMetrics={{
+          cityStress: after.cityStress,
+          venueLoad: after.venueLoad,
+          transitLoad: after.transitLoad,
+          parkingLoad: after.parkingLoad,
+          hotelOccupancy: after.hotelOccupancy
+        }}
+        currentWeather={{
+          rainfallIntensity,
+          stormDuration,
+          temperature,
+          floodingSeverity
+        }}
+        currentScenario={{
+          visitorIncreasePct,
+          transitReductionPct,
+          parkingReductionPct,
+          shuttleReductionPct,
+          venueDelayMinutes
+        }}
+      />
     </div>
   );
 };
